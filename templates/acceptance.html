@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Приемка{% endblock title %}
+
+{% block content %}
+    {% if req_data %}
+        <form method="post">
+        {% csrf_token %}
+            <div class="table-wrapper">
+                <h2 class="table-title">Список заявок</h2>
+                <table class="flexible-table">
+                    <thead>
+                    <tr>
+                        <th class="col-primary text-center">Номер заявки</th>
+                        <th class="col-secondary text-center">Город</th>
+                        <th class="col-actions text-center">Действие</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for i in req_data %}
+                        <tr>
+                            <td class="col-primary text-center">{{ i.0 }}</td>
+                            <td class="col-secondary text-center">{{ i.1 }}</td>
+                            <td class="col-actions">
+                                <button class="action-btn-large primary" type="submit" value="{{ i.0 }},{{ i.1 }}" name="number">
+                                    <svg class="btn-icon" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                         stroke="currentColor" stroke-width="2">
+                                        <path d="M9 11H5a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2h-4"></path>
+                                        <polyline points="9,11 12,14 15,11"></polyline>
+                                        <line x1="12" y1="2" x2="12" y2="14"></line>
+                                    </svg>
+                                    <span class="btn-text">Оприходовать</span>
+                                </button>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </form>
+    {% else %}
+        <div class="alert alert-info text-center" role="alert">
+            Заявок для принятия нет
+        </div>
+    {% endif %}
+{% endblock content %}

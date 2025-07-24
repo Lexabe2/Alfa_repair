@@ -1,0 +1,176 @@
+{% extends "base.html" %}
+{% block title %}Приемка терминала{% endblock title %}
+
+{% block toast %}
+    <div aria-live="polite" aria-atomic="true" class="bg-body-secondary position-relative">
+        <div class="toast-container p-3 top-0 end-0 position-absolute">
+            <div class="toast" id="mainToast" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="toast-header" id="toastHeader">
+                    <strong class="me-auto" id="toastTitle">Сообщение</strong>
+                    <small class="text-muted">сейчас</small>
+                    <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Закрыть"></button>
+                </div>
+                <div class="toast-body" id="toastBody">...</div>
+            </div>
+        </div>
+    </div>
+{% endblock toast %}
+
+{% block content %}
+    <h1 class="mb-4">Оприходование партии</h1>
+    <div>
+        <!-- Первый блок -->
+        <div class="card p-4 shadow rounded" style="padding-right: 20px"> <!-- mb-5 для отступа снизу -->
+            <div class="row g-3 align-items-center">
+                <div class="col-md-9">
+                    <label for="serial-number" class="form-label visually-hidden">Серийный номер</label>
+                    <input
+                            type="text"
+                            id="serial-number"
+                            class="form-control form-control-lg"
+                            placeholder="Введите СН"
+                            required
+                            onkeydown="handleKeyPress(event)"
+                    />
+                </div>
+                <div class="col-md-3 d-flex gap-2">
+                    <button class="btn btn-success btn-lg flex-grow-1" onclick="submitSerial('manual')">Принять</button>
+                    <button
+                            class="btn btn-primary btn-lg"
+                            type="button"
+                            data-bs-toggle="collapse"
+                            data-bs-target="#excelCollapse"
+                            aria-expanded="false"
+                            aria-controls="excelCollapse"
+                    >
+                        Excel файл
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Второй блок -->
+        <div style="padding-top: 10px;">
+            <!-- Разворачивающийся блок -->
+            <div class="collapse" id="excelCollapse">
+                <div class="card p-4 shadow rounded">
+                    <input
+                            type="file"
+                            class="form-control mb-3"
+                            name="excel_file"
+                            id="excel_file"
+                            accept=".xlsx,.xls"
+                            required
+                    />
+                    <button class="btn btn-success w-100 btn-lg" onclick="submitSerial('excel')">Отправить</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div id="tables-wrapper">
+        {% include "partials/serial_tables.html" %}
+    </div>
+
+    <script>
+        function handleKeyPress(event) {
+            if (event.key === "Enter") {
+                submitSerial(); // Вызов твоей функции отправки
+            }
+        }
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let cookie of cookies) {
+                    cookie = cookie.trim();
+                    if (cookie.startsWith(name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.slice(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        function submitSerial(source) {
+            const csrfToken = getCookie('csrftoken');
+
+            let formData;
+            let urlEncoded = false;
+
+            if (source === 'manual') {
+                const serial = document.getElementById('serial-number').value.trim();
+
+                formData = new URLSearchParams();
+                formData.append('source', 'manual');
+                formData.append('serial', serial);
+                urlEncoded = true;
+
+            } else if (source === 'excel') {
+                const fileInput = document.getElementById('excel_file');
+                const file = fileInput.files[0];
+
+                if (!file) {
+                    showToast("Ошибка", "Файл не выбран.", false);
+                    return;
+                }
+
+                formData = new FormData();
+                formData.append('source', 'excel');
+                formData.append('excel_file', file);
+            } else {
+                showToast("Ошибка", "Неизвестный источник запроса.", false);
+                return;
+            }
+
+            fetch("{% url 'acceptance_terminal' %}", {
+                method: "POST",
+                headers: urlEncoded ? {
+                    "Content-Type": "application/x-www-form-urlencoded",
+                    "X-CSRFToken": csrfToken
+                } : {
+                    "X-CSRFToken": csrfToken
+                },
+                body: urlEncoded ? formData.toString() : formData
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        document.getElementById('tables-wrapper').innerHTML = data.html;
+                        if (source === 'manual') {
+                            document.getElementById('serial-number').value = "";
+                        } else if (source === 'excel') {
+                            document.getElementById('excel_file').value = "";
+                        }
+                        showToast("Успешно", data.message, true);
+                    } else {
+                        showToast("Ошибка", data.message, false);
+                    }
+                })
+                .catch(() => {
+                    showToast("Ошибка сети", "Не удалось отправить запрос.", false);
+                });
+        }
+
+        function showToast(title, message, isSuccess = true) {
+            const toastTitle = document.getElementById("toastTitle");
+            const toastBody = document.getElementById("toastBody");
+            const toastHeader = document.getElementById("toastHeader");
+            const toastEl = document.getElementById("mainToast");
+
+            toastTitle.textContent = title;
+            toastBody.textContent = message;
+
+            // Цвет шапки: успех — зелёный, ошибка — красный
+            toastHeader.className = isSuccess
+                ? "toast-header bg-success text-white"
+                : "toast-header bg-danger text-white";
+
+            const toast = new bootstrap.Toast(toastEl);
+            toast.show();
+        }
+    </script>
+{% endblock content %}

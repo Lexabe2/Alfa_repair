@@ -1,0 +1,113 @@
+<div class="container-fluid py-4">
+    <div class="row mt-4 g-4">
+        <!-- Не принят -->
+        <div class="col-md-6">
+            <div class="status-card pending-card">
+                <div class="card-header-custom pending-header">
+                    <div class="header-content">
+                        <div class="status-icon pending-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                 stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <polyline points="12,6 12,12 16,14"></polyline>
+                            </svg>
+                        </div>
+                        <div class="header-text">
+                            <h5 class="mb-0">Не принят</h5>
+                            <span class="count-badge pending-badge">{{ not_accepted_count }}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body-custom">
+                    <div class="table-container">
+                        <table class="status-table">
+                            <thead>
+                            <tr>
+                                <th>Серийный номер</th>
+                                <th>Модель</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for sn in not_accepted %}
+                                <tr>
+                                    <td class="serial-cell">{{ sn.serial }}</td>
+                                    <td class="model-cell">{{ sn.model_bank }}</td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="2" class="empty-state">
+                                        <div class="empty-content">
+                                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none"
+                                                 stroke="currentColor" stroke-width="1.5">
+                                                <circle cx="12" cy="12" r="10"></circle>
+                                                <path d="m9 12 2 2 4-4"></path>
+                                            </svg>
+                                            <span>Нет данных</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Принят -->
+        <div class="col-md-6">
+            <div class="status-card accepted-card">
+                <div class="card-header-custom accepted-header">
+                    <div class="header-content">
+                        <div class="status-icon accepted-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                 stroke-width="2">
+                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                <polyline points="22,4 12,14.01 9,11.01"></polyline>
+                            </svg>
+                        </div>
+                        <div class="header-text">
+                            <h5 class="mb-0">Принят</h5>
+                            <span class="count-badge accepted-badge">{{ accepted_count }}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body-custom">
+                    <div class="table-container">
+                        <table class="status-table">
+                            <thead>
+                            <tr>
+                                <th>Серийный номер</th>
+                                <th>Производитель</th>
+                                <th>Модель</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for sn in accepted %}
+                                <tr>
+                                    <td class="serial-cell">{{ sn.serial }}</td>
+                                    <td class="serial-cell">{{ sn.brand }}</td>
+                                    <td class="model-cell">{{ sn.model }}</td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="2" class="empty-state">
+                                        <div class="empty-content">
+                                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none"
+                                                 stroke="currentColor" stroke-width="1.5">
+                                                <circle cx="12" cy="12" r="10"></circle>
+                                                <path d="m9 12 2 2 4-4"></path>
+                                            </svg>
+                                            <span>Нет данных</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

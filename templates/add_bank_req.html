@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+{% block title %}Данные банка{% endblock title %}
+
+{% block content %}
+    <h3 class="title_add_bank_req">Приемка</h3>
+
+    <form id="uploadForm" enctype="multipart/form-data" class="d-flex gap-3 align-items-center">
+        {% csrf_token %}
+
+        <div style="width: 250px; height: 38px;">
+            <label for="city"></label><input type="text" class="form-control h-100" id="city" name="city"
+                                             placeholder="Город" required>
+        </div>
+
+        <div style="width: 450px;">
+            <input type="file" class="form-control h-100" name="excel" id="excelFile" required>
+        </div>
+
+        <div style="width: 250px;">
+            <button type="submit" class="btn btn-success w-100 h-100">Загрузить</button>
+        </div>
+    </form>
+
+    <div id="tableContainer" class="mt-4"></div>
+
+    {% block toast %}
+        <div aria-live="polite" aria-atomic="true" class="bg-body-secondary position-relative">
+            <div class="toast-container p-3 top-0 end-0 position-absolute">
+                <div class="toast" id="mainToast" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="toast-header" id="toastHeader">
+                        <strong class="me-auto" id="toastTitle">Сообщение</strong>
+                        <small class="text-muted">сейчас</small>
+                        <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Закрыть"></button>
+                    </div>
+                    <div class="toast-body" id="toastBody">...</div>
+                </div>
+            </div>
+        </div>
+    {% endblock toast %}
+
+    <script>
+        document.getElementById("uploadForm").addEventListener("submit", function (e) {
+            e.preventDefault();
+
+            const form = e.target;
+            const formData = new FormData(form);
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+            fetch("{% url 'add_bank_req' %}", {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": csrfToken
+                },
+                body: formData
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        showToast('error', data.error);
+                    } else {
+                        showToast('success', 'Индексы найдены');
+                        renderTable(data.data_excel);
+                    }
+                })
+                .catch(error => {
+                    showToast("error", error);
+                });
+        });
+
+        function showToast(type, message) {
+            const toastEl = document.getElementById("mainToast");
+            const toastBody = document.getElementById("toastBody");
+            const toastHeader = document.getElementById("toastHeader");
+            const toastTitle = document.getElementById("toastTitle");
+
+            // Удаляем старые цветовые классы
+            toastHeader.classList.remove("bg-danger", "bg-success", "text-white");
+
+            if (type === "error") {
+                toastHeader.classList.add("bg-danger", "text-white");
+                toastTitle.innerText = "Ошибка";
+            } else if (type === "success") {
+                toastHeader.classList.add("bg-success", "text-white");
+                toastTitle.innerText = "Успешно";
+            }
+
+            toastBody.innerText = message;
+
+            const toast = new bootstrap.Toast(toastEl, {delay: 5000});
+            toast.show();
+        }
+
+        function renderTable(data_excel) {
+            const container = document.getElementById("tableContainer");
+            container.innerHTML = "";
+
+            if (!data_excel || data_excel.length === 0) {
+                container.innerText = "Нет данных для отображения";
+                return;
+            }
+
+            // Вывод количества записей
+            const countText = document.createElement("h5");
+            countText.className = "mb-3";
+            countText.textContent = `Всего записей: ${data_excel.length}`;
+            container.appendChild(countText);
+
+            const table = document.createElement("table");
+            table.className = "table table-striped table-hover table-bordered";
+
+            // Заголовки
+            const thead = document.createElement("thead");
+            const headerRow = document.createElement("tr");
+
+            ["Серийный номер", "Модель"].forEach(title => {
+                const th = document.createElement("th");
+                th.textContent = title;
+                headerRow.appendChild(th);
+            });
+
+            thead.appendChild(headerRow);
+            table.appendChild(thead);
+
+            // Тело таблицы
+            const tbody = document.createElement("tbody");
+            data_excel.forEach(row => {
+                const tr = document.createElement("tr");
+
+                const sn = document.createElement("td");
+                sn.textContent = row[0] || "";
+                tr.appendChild(sn);
+
+                const model = document.createElement("td");
+                model.textContent = row[1] || "";
+                tr.appendChild(model);
+
+                tbody.appendChild(tr);
+            });
+
+            table.appendChild(tbody);
+            container.appendChild(table);
+        }
+    </script>
+{% endblock content %}

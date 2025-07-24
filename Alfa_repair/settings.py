@@ -1,23 +1,19 @@
 from pathlib import Path
-import dotenv
+from decouple import config
+from .logging import LOGGING
 import os
-
-BASE_DIR = os.path.dirname(os.path.dirname(__file__))
-dotenv_file = os.path.join(BASE_DIR, ".env")
-
-if os.path.isfile(dotenv_file):
-    dotenv.load_dotenv(dotenv_file)
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = os.environ['SECRET_KEY']
+SECRET_KEY = config('SECRET_KEY')
 
 DEBUG = True
 
 ALLOWED_HOSTS = []
 
-
 INSTALLED_APPS = [
+    'Alfa_repair_app',
+    'jet',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -35,6 +31,9 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+X_FRAME_OPTIONS = "SAMEORIGIN"              # allows you to use modals insated of popups
+SILENCED_SYSTEM_CHECKS = ["security.W019"]
 
 ROOT_URLCONF = 'Alfa_repair.urls'
 
@@ -55,25 +54,6 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'Alfa_repair.wsgi.application'
-
-LOGGING = {
-    "version": 1,
-    "disable_existing_loggers": False,
-    "handlers": {
-        "file": {
-            "level": "DEBUG",
-            "class": "logging.FileHandler",
-            "filename": "/path/to/Alfa_repair/debug.log",
-        },
-    },
-    "loggers": {
-        "django": {
-            "handlers": ["file"],
-            "level": "DEBUG",
-            "propagate": True,
-        },
-    },
-}
 
 DATABASES = {
     'default': {
@@ -105,6 +85,8 @@ USE_I18N = True
 
 USE_TZ = True
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+STATICFILES_DIRS = [BASE_DIR / 'static']
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
