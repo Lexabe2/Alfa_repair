@@ -20,9 +20,10 @@
     <h1 class="mb-4">Оприходование партии</h1>
     <div>
         <!-- Первый блок -->
-        <div class="card p-4 shadow rounded" style="padding-right: 20px"> <!-- mb-5 для отступа снизу -->
-            <div class="row g-3 align-items-center">
-                <div class="col-md-9">
+        <div class="card p-4 shadow rounded mb-5">
+            <div class="row g-3 align-items-end">
+                <!-- Поле "Серийный номер" -->
+                <div class="col-md-4">
                     <label for="serial-number" class="form-label visually-hidden">Серийный номер</label>
                     <input
                             type="text"
@@ -33,10 +34,28 @@
                             onkeydown="handleKeyPress(event)"
                     />
                 </div>
-                <div class="col-md-3 d-flex gap-2">
-                    <button class="btn btn-success btn-lg flex-grow-1" onclick="submitSerial('manual')">Принять</button>
+
+                <!-- Поле "Номер коробки" -->
+                <div class="col-md-4">
+                    <label for="box" class="form-label visually-hidden">Номер коробки</label>
+                    <input
+                            type="text"
+                            id="box"
+                            name="box"
+                            class="form-control form-control-lg"
+                            placeholder="Номер коробки"
+                            value="{{ max_box }}"
+                            required
+                            readonly
+                            onkeydown="handleKeyPress(event)"
+                    />
+                </div>
+
+                <!-- Кнопки -->
+                <div class="col-md-4 d-flex gap-2">
+                    <button class="btn btn-success btn-lg w-50" onclick="submitSerial('manual')">Принять</button>
                     <button
-                            class="btn btn-primary btn-lg"
+                            class="btn btn-primary btn-lg w-50"
                             type="button"
                             data-bs-toggle="collapse"
                             data-bs-target="#excelCollapse"
@@ -103,12 +122,18 @@
 
             if (source === 'manual') {
                 const serial = document.getElementById('serial-number').value.trim();
+                const box = document.getElementById('box').value.trim();
+
+                if (!box) {
+                    showToast("Ошибка", "Поле 'Номер коробки' не может быть пустым.", false);
+                    return;
+                }
 
                 formData = new URLSearchParams();
                 formData.append('source', 'manual');
                 formData.append('serial', serial);
+                formData.append('box', box);
                 urlEncoded = true;
-
             } else if (source === 'excel') {
                 const fileInput = document.getElementById('excel_file');
                 const file = fileInput.files[0];

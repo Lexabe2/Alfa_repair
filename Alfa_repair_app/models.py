@@ -33,6 +33,7 @@ class SerialNumber(models.Model):
     model = models.CharField(max_length=100, verbose_name='Модель', blank=True, null=True)
     brand = models.CharField(max_length=20, verbose_name='Производитель', blank=True, null=True)
     status = models.CharField(max_length=100, blank=True, null=True, verbose_name="Статус")
+    box = models.CharField(max_length=5, blank=True, null=True, verbose_name='Номер коробки')
     location = models.CharField(max_length=255, blank=True, null=True, verbose_name="Местонахождение")
 
     class Meta:

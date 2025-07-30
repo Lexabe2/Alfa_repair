@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+
+{% block title %}Приемка терминала{% endblock title %}
+
+{% block content %}
+    <h1>Распределение</h1>
+
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#assignCityModal">
+        Назначить город коробкам
+    </button>
+
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            <th>Бренд</th>
+            <th>Модель</th>
+            <th>Коробка</th>
+            <th>Количество</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for item in serials %}
+            <tr>
+                <td>{{ item.brand }}</td>
+                <td>{{ item.model }}</td>
+                <td>{{ item.box }}</td>
+                <td>{{ item.total }}</td>
+            </tr>
+        {% empty %}
+            <tr>
+                <td colspan="4">Нет данных</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Модальное окно -->
+    <div class="modal fade" id="assignCityModal" tabindex="-1" aria-labelledby="assignCityModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <form method="post" action="{% url 'distribution' %}">
+                {% csrf_token %}
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="assignCityModalLabel">Назначить город коробкам</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Выберите коробки</label>
+                            <!-- Блок для счётчика -->
+                            <div class="mb-2">
+                                <strong id="box-count">Выбрано: 0 коробок</strong>
+                            </div>
+
+                            <!-- Список коробок -->
+                            {% for box, brand, total in all_boxes %}
+                                <div class="form-check">
+                                    <input class="form-check-input box-checkbox" type="checkbox" name="boxes" value="{{ box }}" data-total="{{ total }}">
+                                    <label class="form-check-label">
+                                        Коробка {{ box }} — {{ brand }} ({{ total }} шт.)
+                                    </label>
+                                </div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="city" class="form-label">Город</label>
+                            <select class="form-select" name="city" id="city" required>
+                                <option value="">Выберите город</option>
+                                {% for city in cities %}
+                                    <option value="{{ city }}">{{ city }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                        <button type="submit" class="btn btn-primary">Сохранить</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- JavaScript для подсчёта количества -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const checkboxes = document.querySelectorAll('.box-checkbox');
+            const counterDisplay = document.getElementById('box-count');
+
+            function updateCounter() {
+                let selectedCount = 0;
+                let totalItems = 0;
+
+                checkboxes.forEach(cb => {
+                    if (cb.checked) {
+                        selectedCount++;
+                        totalItems += parseInt(cb.dataset.total || '0', 10);
+                    }
+                });
+
+                counterDisplay.textContent = `Выбрано: ${selectedCount} коробок (всего ${totalItems} шт.)`;
+            }
+
+            checkboxes.forEach(cb => {
+                cb.addEventListener('change', updateCounter);
+            });
+        });
+    </script>
+{% endblock content %}

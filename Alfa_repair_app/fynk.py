@@ -1,6 +1,7 @@
 from openpyxl import load_workbook, Workbook
 from Alfa_repair_app.models import Batch, SerialNumber
-import io
+from django.db.models import Count
+from collections import Counter
 
 
 def search_batch_terminal(batch):
@@ -12,7 +13,7 @@ def search_batch_terminal(batch):
 def terminal(req):
     batch = Batch.objects.get(number=req)
     serial_count = batch.serial_numbers.count()
-    accepted = SerialNumber.objects.filter(batch=batch, status="Принят")
+    accepted = SerialNumber.objects.filter(batch=batch).exclude(status="Ожидает принятия")
     not_accepted = SerialNumber.objects.filter(batch=batch, status='Ожидает принятия')
     terminal_data = {
         'serial_count': serial_count,
@@ -120,7 +121,7 @@ def search_difference_db(sn_db, sn_excel, batch):  # Поиск расхожде
     return None
 
 
-def create_excel_discrepancies(sn_db, sn_excel, data_excel, batch):
+def create_excel_discrepancies(sn_db, sn_excel, data_excel, batch, req, city):
     # Получаем словари расхождений
     difference_excel = search_difference_excel(sn_db, sn_excel, data_excel, batch)
     difference_db = search_difference_db(sn_db, sn_excel, batch)
@@ -159,7 +160,8 @@ def create_excel_discrepancies(sn_db, sn_excel, data_excel, batch):
             ws.cell(row=row, column=4, value=db_items[i][1])  # Модель
 
     # Сохраняем файл
-    wb.save("discrepancies.xlsx")
+    wb.save(f"bad_reg/{city}_{req}.xlsx")
+    return True
 
 
 def excel_load_terminal_add(file_name, req, city):  # Получение данных их Excel
@@ -180,6 +182,27 @@ def excel_load_terminal_add(file_name, req, city):  # Получение дан�
             })
 
     sn_excel = [i['sn'] for i in data_excel]
-    create_excel_discrepancies(sn_db, sn_excel, data_excel, batch)
+    create_excel_discrepancies(sn_db, sn_excel, data_excel, batch, req, city)
     return data_excel
 
+
+def search_distribution(status):
+    serials = (
+        SerialNumber.objects
+        .filter(status=status)
+        .values('brand', 'model', 'box')
+        .annotate(total=Count('id'))
+        .order_by('brand', 'model')
+    )
+    # Считаем количество по каждой паре (box, brand)
+    counter = Counter()
+
+    for item in serials:
+        box = item['box']
+        brand = item['brand']
+        if box:
+            counter[(box, brand)] += item['total']
+
+    # Превращаем в отсортированный список кортежей (box, brand, total)
+    all_boxes = sorted([(box, brand, total) for (box, brand), total in counter.items()])
+    return serials, all_boxes

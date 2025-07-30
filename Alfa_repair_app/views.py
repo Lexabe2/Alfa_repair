@@ -2,7 +2,8 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
-from .fynk import search_cell_start, search_cell_end, app_data, terminal, model_search, excel_load_terminal_add
+from .fynk import search_cell_start, search_cell_end, app_data, terminal, model_search, excel_load_terminal_add, \
+    search_distribution
 from Alfa_repair_app.models import Batch, SerialNumber
 from django.template.loader import render_to_string
 
@@ -98,6 +99,7 @@ def acceptance_terminal(request):
 
     if request.method == "POST":
         serial = request.POST.get("serial", "").strip()
+        box = request.POST.get("box", "").strip()
         if met == 'manual':
             if not serial:
                 return JsonResponse({"success": False, "message": "Серийный номер не указан."})
@@ -109,8 +111,10 @@ def acceptance_terminal(request):
                 if model_search(sn.model_bank):
                     model_brand = model_search(sn.model_bank)
                     sn.status = "Принят"
+                    sn.box = box
                     sn.model = model_brand['model']
                     sn.brand = model_brand['brand']
+                    sn.location = "Москва"
                     sn.save()
                 else:
                     return JsonResponse({
@@ -139,6 +143,7 @@ def acceptance_terminal(request):
 
     # GET-запрос
     terminal_data = terminal(part_number)
+    max_box = SerialNumber.objects.order_by('-box').values_list('box', flat=True).first()
     context = {
         'number_req': part_number,
         'city': city,
@@ -147,5 +152,23 @@ def acceptance_terminal(request):
         'accepted_count': terminal_data['accepted_count'],
         "not_accepted": terminal_data['not_accepted'],
         "not_accepted_count": terminal_data['not_accepted_count'],
+        'max_box': int(max_box) + 1,
     }
     return render(request, 'acceptance_terminal.html', context)
+
+
+@login_required(login_url='login')
+def distribution(request):
+    if request.method == 'GET':
+        cities = ['Тюмень', 'Инпас']
+        serials, all_boxes = search_distribution('Принят')
+        return render(request, 'distribution.html', {'serials': serials, 'cities': cities, 'all_boxes': all_boxes})
+    elif request.method == 'POST':
+        boxes = request.POST.getlist('boxes')
+        if boxes:
+            city = request.POST.get('city')
+            SerialNumber.objects.filter(box__in=request.POST.getlist('boxes')).update(
+                status='Ремонт',
+                location=city
+            )
+        return JsonResponse({"success": True})
