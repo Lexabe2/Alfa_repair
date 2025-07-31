@@ -143,7 +143,7 @@ def acceptance_terminal(request):
 
     # GET-запрос
     terminal_data = terminal(part_number)
-    max_box = SerialNumber.objects.order_by('-box').values_list('box', flat=True).first()
+    max_box = SerialNumber.objects.order_by('-box').values_list('box', flat=True).first() or 0
     context = {
         'number_req': part_number,
         'city': city,
