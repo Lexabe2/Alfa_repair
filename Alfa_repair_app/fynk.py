@@ -221,6 +221,7 @@ def search_box(excel):
 
 
 def add_box_terminal(excel):
+    #
     for k, v in excel.items():
         exists = SerialNumber.objects.filter(serial=k).exists()
         if exists:
