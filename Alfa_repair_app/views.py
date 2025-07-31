@@ -3,7 +3,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from .fynk import search_cell_start, search_cell_end, app_data, terminal, model_search, excel_load_terminal_add, \
-    search_distribution
+    search_distribution, search_box
 from Alfa_repair_app.models import Batch, SerialNumber
 from django.template.loader import render_to_string
 
@@ -171,4 +171,11 @@ def distribution(request):
                 status='Ремонт',
                 location=city
             )
-        return JsonResponse({"success": True})
+        return redirect('distribution')
+
+
+@login_required(login_url='login')
+def add_data_all(request):
+    if request.method == 'POST':
+        search_box(request.FILES['excel'])
+    return render(request, 'add_data_all.html')

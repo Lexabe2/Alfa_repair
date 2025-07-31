@@ -206,3 +206,24 @@ def search_distribution(status):
     # Превращаем в отсортированный список кортежей (box, brand, total)
     all_boxes = sorted([(box, brand, total) for (box, brand), total in counter.items()])
     return serials, all_boxes
+
+
+def search_box(excel):
+    wb = load_workbook(excel)
+    sheet = wb.active
+    data_excel = {}
+    for row in range(2, sheet.max_row + 1):
+        col1 = sheet.cell(row=row, column=1).value
+        col2 = sheet.cell(row=row, column=2).value
+        data_excel[col1] = int(col2)
+    add_box_terminal(data_excel)
+    return data_excel
+
+
+def add_box_terminal(excel):
+    for k, v in excel.items():
+        exists = SerialNumber.objects.filter(serial=k).exists()
+        if exists:
+            SerialNumber.objects.filter(serial=k).update(box=v)
+        else:
+            return f'Терминал {k} нет в бд'

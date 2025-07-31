@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Добавление{% endblock title %}
+{% block content %}
+    <div>
+        <h3>
+            Добавить терминалам коробки
+        </h3>
+        <form method="post" enctype="multipart/form-data" action="{% url 'add_data_all' %}">
+            {% csrf_token %}
+            <div style="width: 450px;">
+                <input type="file" class="form-control h-100" name="excel" id="excelFile" required>
+            </div>
+
+            <div style="width: 250px;">
+                <button type="submit" class="btn btn-success w-100 h-100">Загрузить</button>
+            </div>
+        </form>
+    </div>
+    <div>
+        <div style="width: 450px;">
+            <input type="file" class="form-control h-100" name="excel" id="excelFile" required>
+        </div>
+
+        <div style="width: 250px;">
+            <button type="submit" class="btn btn-success w-100 h-100">Загрузить</button>
+        </div>
+    </div>
+{% endblock content %}
