@@ -125,42 +125,51 @@ def create_excel_discrepancies(sn_db, sn_excel, data_excel, batch, req, city):
     # Получаем словари расхождений
     difference_excel = search_difference_excel(sn_db, sn_excel, data_excel, batch)
     difference_db = search_difference_db(sn_db, sn_excel, batch)
+    if difference_excel is None and difference_db is None:
+        for sn in sn_excel:
+            model = SerialNumber.objects.get(serial=sn)
+            good_model_and_brand = model_search(model.model_bank)
+            SerialNumber.objects.filter(serial=sn).update(model=good_model_and_brand['model'],
+                                                          brand=good_model_and_brand['brand'],
+                                                          status='Принят', location='Москва')
+    else:
+        # Создаем новый Excel-файл
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "Discrepancies"
 
-    # Создаем новый Excel-файл
-    wb = Workbook()
-    ws = wb.active
-    ws.title = "Discrepancies"
+        # Заголовки
+        ws.merge_cells('A1:B1')
+        ws['A1'] = 'Нет в заявке'
+        ws['A2'] = 'Серийный номер'
+        ws['B2'] = 'Модель'
 
-    # Заголовки
-    ws.merge_cells('A1:B1')
-    ws['A1'] = 'Нет в заявке'
-    ws['A2'] = 'Серийный номер'
-    ws['B2'] = 'Модель'
+        ws.merge_cells('C1:D1')
+        ws['C1'] = 'Не поступил'
+        ws['C2'] = 'Серийный номер'
+        ws['D2'] = 'Модель'
 
-    ws.merge_cells('C1:D1')
-    ws['C1'] = 'Не поступил'
-    ws['C2'] = 'Серийный номер'
-    ws['D2'] = 'Модель'
+        # Максимальное количество строк из двух словарей
+        len_excel = len(difference_excel) if difference_excel else 0
+        len_db = len(difference_db) if difference_db else 0
+        max_len = max(len_excel, len_db)
 
-    # Максимальное количество строк из двух словарей
-    max_len = max(len(difference_excel), len(difference_db))
+        # Преобразуем словари в списки
+        excel_items = list(difference_excel.items()) if difference_excel else []
+        db_items = list(difference_db.items()) if difference_db else []
 
-    # Преобразуем словари в списки
-    excel_items = list(difference_excel.items())
-    db_items = list(difference_db.items())
+        # Заполняем строки
+        for i in range(max_len):
+            row = i + 3  # начинаем с третьей строки
+            if i < len(excel_items):
+                ws.cell(row=row, column=1, value=excel_items[i][0])  # Серийный номер
+                ws.cell(row=row, column=2, value=excel_items[i][1])  # Модель
+            if i < len(db_items):
+                ws.cell(row=row, column=3, value=db_items[i][0])  # Серийный номер
+                ws.cell(row=row, column=4, value=db_items[i][1])  # Модель
 
-    # Заполняем строки
-    for i in range(max_len):
-        row = i + 3  # начинаем с третьей строки
-        if i < len(excel_items):
-            ws.cell(row=row, column=1, value=excel_items[i][0])  # Серийный номер
-            ws.cell(row=row, column=2, value=excel_items[i][1])  # Модель
-        if i < len(db_items):
-            ws.cell(row=row, column=3, value=db_items[i][0])  # Серийный номер
-            ws.cell(row=row, column=4, value=db_items[i][1])  # Модель
-
-    # Сохраняем файл
-    wb.save(f"bad_reg/{city}_{req}.xlsx")
+        # Сохраняем файл
+        wb.save(f"bad_reg/{city}_{req}.xlsx")
     return True
 
 

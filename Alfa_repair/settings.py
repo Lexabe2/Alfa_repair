@@ -9,7 +9,7 @@ SECRET_KEY = config('SECRET_KEY')
 
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['5.129.204.218', 'бао-атм-алфа.рф', 'xn-----6kcbbab9fgr0c2a.xn>c2a.xn--p1ai', 'localhost', '127.0.0.1']
 
 INSTALLED_APPS = [
     'Alfa_repair_app',
@@ -55,12 +55,26 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'Alfa_repair.wsgi.application'
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+DJANGO_ENV = config('DJANGO_ENV', default='development')
+
+if DJANGO_ENV == 'production':
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': config('DB_NAME'),
+            'USER': config('DB_USER'),
+            'PASSWORD': config('DB_PASSWORD'),
+            'HOST': config('DB_HOST'),
+            'PORT': config('DB_PORT'),
+        }
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 AUTH_PASSWORD_VALIDATORS = [
     {
