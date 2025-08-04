@@ -24,4 +24,4 @@ class BatchAdmin(admin.ModelAdmin):
 class SerialNumberAdmin(admin.ModelAdmin):
     list_display = ("serial", "model", "status", "location", "batch")
     search_fields = ("serial", "model")
-    list_filter = ("status", "location", "batch__city")
+    list_filter = ("status", "location", "batch__city", "batch")
