@@ -11,7 +11,13 @@ DEBUG = True
 
 ## dsdf
 
-ALLOWED_HOSTS = ['5.129.204.218', 'бао-атм-алфа.рф', 'xn-----6kcbbab9fgr0c2a.xn>c2a.xn--p1ai', 'localhost', '127.0.0.1']
+ALLOWED_HOSTS = [
+    '5.129.204.218',
+    'бао-атм-алфа.рф',
+    'xn-----6kcbbab9fgr0c2a.xn--p1ai',
+    'localhost',
+    '127.0.0.1'
+]
 
 INSTALLED_APPS = [
     'Alfa_repair_app',
