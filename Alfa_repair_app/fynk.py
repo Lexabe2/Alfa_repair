@@ -70,6 +70,7 @@ def model_search(model):
     verifone = ['VX520', 'VX520G']
     tactilion = ['G25', 'H9', 'H9PRO', 'MF960', 'MF960L', 'MP70']
     morefun = ['MF960L', 'MF960']
+    ts = ['Телескопическая стойка']
 
     brand_models = {
         'Pax': pax_model,
@@ -79,6 +80,7 @@ def model_search(model):
         'Verifone': verifone,
         'Tactilion': tactilion,
         'Morefun': morefun,
+        'Телескопическая стойка': ts
     }
 
     for brand, models in brand_models.items():
