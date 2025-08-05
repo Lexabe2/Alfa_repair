@@ -8,6 +8,7 @@ from Alfa_repair_app.models import Batch, SerialNumber
 from django.template.loader import render_to_string
 from django.http import HttpResponse
 from openpyxl import Workbook
+import openpyxl
 
 
 def login_views(request):
@@ -179,7 +180,25 @@ def distribution(request):
 @login_required(login_url='login')
 def add_data_all(request):
     if request.method == 'POST':
-        search_box(request.FILES['excel'])
+        result = search_box(request.FILES['excel'])
+
+        if result['status'] == 'error':
+            # Создаём Excel-файл с не найденными серийниками
+            wb = openpyxl.Workbook()
+            ws = wb.active
+            ws.title = "Not Found"
+            ws.append(['Серийный номер (не найден в БД)'])
+
+            for sn in result['not_found']:
+                ws.append([sn])
+
+            response = HttpResponse(
+                content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            )
+            response['Content-Disposition'] = 'attachment; filename="not_found_serials.xlsx"'
+
+            wb.save(response)
+            return response
     return render(request, 'add_data_all.html')
 
 

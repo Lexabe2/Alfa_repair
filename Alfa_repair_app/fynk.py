@@ -220,12 +220,32 @@ def search_box(excel):
     wb = load_workbook(excel)
     sheet = wb.active
     data_excel = {}
+
     for row in range(2, sheet.max_row + 1):
-        col1 = sheet.cell(row=row, column=1).value
-        col2 = sheet.cell(row=row, column=2).value
+        col1 = sheet.cell(row=row, column=1).value  # serial
+        col2 = sheet.cell(row=row, column=2).value  # box
         data_excel[col1] = int(col2)
-    add_box_terminal(data_excel)
-    return data_excel
+
+    # Проверяем сначала, все ли терминалы существуют
+    not_found = [serial for serial in data_excel if not SerialNumber.objects.filter(serial=serial).exists()]
+
+    if not_found:
+        # Если хотя бы одного нет — ничего не обновляем
+        return {
+            'status': 'error',
+            'not_found': not_found,
+            'message': f'Найдены несуществующие серийные номера: {", ".join(not_found)}'
+        }
+
+    # Все терминалы найдены — обновляем
+    for serial, box in data_excel.items():
+        SerialNumber.objects.filter(serial=serial).update(box=box)
+
+    return {
+        'status': 'success',
+        'updated_count': len(data_excel),
+        'message': 'Коробки успешно обновлены'
+    }
 
 
 def add_box_terminal(excel):
