@@ -6,6 +6,8 @@ from .fynk import search_cell_start, search_cell_end, app_data, terminal, model_
     search_distribution, search_box
 from Alfa_repair_app.models import Batch, SerialNumber
 from django.template.loader import render_to_string
+from django.http import HttpResponse
+from openpyxl import Workbook
 
 
 def login_views(request):
@@ -179,3 +181,26 @@ def add_data_all(request):
     if request.method == 'POST':
         search_box(request.FILES['excel'])
     return render(request, 'add_data_all.html')
+
+
+def export_serials_to_excel(request):
+    # Создаём Excel-файл
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Serial Numbers"
+
+    # Заголовки
+    ws.append(['Серийный номер', 'Номер коробки'])
+
+    # Данные из модели
+    for sn in SerialNumber.objects.all():
+        ws.append([sn.serial, sn.box])
+
+    # Готовим HTTP-ответ
+    response = HttpResponse(
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    )
+    response['Content-Disposition'] = 'attachment; filename=serial_numbers.xlsx'
+
+    wb.save(response)
+    return response
