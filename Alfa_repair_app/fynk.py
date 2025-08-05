@@ -62,12 +62,11 @@ def app_data(search_range_model, search_range_sn, excel):
 
 def model_search(model):
     model_clean = str(model).upper().replace(" ", "")
-    print(model_clean)
 
     pax_model = ['D230', 'D270', 'Q25', 'Q80', 'Q80S', 'S200', 'S300', 'S920', 'SP30']
     aisino_model = ['V37', 'V73', 'V10', 'V80SE', 'V80', 'K9']
     paymob_model = ['A90']
-    unitodi = ['ПБФ', 'P8', 'ТЕЛЕСКОПИЧЕСКАЯСТОЙКА']
+    unitodi = ['ПБФ', 'P8', 'ТЕЛЕСКОПИЧЕСКАЯСТОЙКА', 'UNITODIFREE']
     verifone = ['VX520', 'VX520G']
     tactilion = ['G25', 'H9', 'H9PRO', 'MF960', 'MF960L', 'MP70']
     morefun = ['MF960L', 'MF960']
