@@ -49,10 +49,13 @@
                             readonly
                             onkeydown="handleKeyPress(event)"
                     />
-                </div>
 
+                </div>
                 <!-- Кнопки -->
-                <div class="col-md-4 d-flex gap-2">
+                <div class="col-md-2 d-flex gap-2">
+                    <button type="button" class="btn btn-secondary btn-lg w-10" onclick="increaseBox()">
+                        +1
+                    </button>
                     <button class="btn btn-success btn-lg w-50" onclick="submitSerial('manual')">Принять</button>
                     <button
                             class="btn btn-primary btn-lg w-50"
@@ -93,6 +96,18 @@
     </div>
 
     <script>
+        function increaseBox() {
+            const boxInput = document.getElementById("box");
+            let current = parseInt(boxInput.value);
+
+            // Если значение не число — считаем, что оно 0
+            if (isNaN(current)) {
+                current = 0;
+            }
+
+            boxInput.value = current + 1;
+        }
+
         function handleKeyPress(event) {
             if (event.key === "Enter") {
                 submitSerial('manual'); // Вызов твоей функции отправки
