@@ -9,7 +9,8 @@ from django.template.loader import render_to_string
 from django.http import HttpResponse
 from openpyxl import Workbook
 import openpyxl
-
+from django.db.models.functions import Cast
+from django.db.models import IntegerField, Max
 
 def login_views(request):
     return render(request, 'login.html')
@@ -146,7 +147,13 @@ def acceptance_terminal(request):
 
     # GET-запрос
     terminal_data = terminal(part_number)
-    max_box = SerialNumber.objects.order_by('-box').values_list('box', flat=True).first() or 0
+    max_box = (
+                  SerialNumber.objects
+                  .exclude(box__isnull=True)
+                  .exclude(box='')
+                  .annotate(box_int=Cast('box', IntegerField()))
+                  .aggregate(max_box=Max('box_int'))['max_box']
+              ) or 0
     context = {
         'number_req': part_number,
         'city': city,
