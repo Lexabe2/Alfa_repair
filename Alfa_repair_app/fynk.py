@@ -68,7 +68,7 @@ def model_search(model):
     aisino_model = ['V37', 'V73', 'V10', 'V80SE', 'V80', 'K9']
     paymob_model = ['A90']
     unitodi = ['ПБФ', 'P8', 'ТЕЛЕСКОПИЧЕСКАЯСТОЙКА', 'UNITODIFREE']
-    verifone = ['VX520', 'VX520G', 'VX680']
+    verifone = ['VX520', 'VX520G', 'VX680', 'V205c', 'V205t', 'V240m']
     tactilion = ['G25', 'H9', 'H9PRO', 'MF960', 'MF960L', 'MP70']
     morefun = ['MF960L', 'MF960']
 
