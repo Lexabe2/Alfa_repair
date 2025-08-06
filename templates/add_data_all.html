@@ -1,31 +1,556 @@
 {% extends "base.html" %}
 {% block title %}Добавление{% endblock title %}
 {% block content %}
-    <div>
-        <h3>
-            Добавить терминалам коробки
-        </h3>
-        <form method="post" enctype="multipart/form-data" action="{% url 'add_data_all' %}">
-            {% csrf_token %}
-            <div style="width: 450px;">
-                <input type="file" class="form-control h-100" name="excel" id="excelFile" required>
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="">
+            <!-- Заголовок -->
+            <div class="text-center mb-4">
+                <h3 class="text-primary fw-bold">Добавить терминалам коробки</h3>
             </div>
 
-            <div style="width: 250px;">
-                <button type="submit" class="btn btn-success w-100 h-100">Загрузить</button>
+            <!-- Исправленный блок загрузки файла -->
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-file-excel me-2"></i>Загрузка Excel файла</h5>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post" enctype="multipart/form-data" action="{% url 'add_data_all' %}">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="excelFile" class="form-label fw-semibold">Выберите файл:</label>
+                            <input type="file" class="form-control form-control-lg" name="excel" id="excelFile" required accept=".xlsx,.xls">
+                            <div class="form-text">
+                                <i class="fas fa-info-circle me-1"></i>Поддерживаются форматы: .xlsx, .xls
+                            </div>
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="fas fa-cloud-upload-alt me-2"></i>Загрузить файл
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Кнопка для модального окна -->
+            <div class="text-center">
+                <button type="button" class="btn btn-outline-primary btn-lg px-5" data-bs-toggle="modal" data-bs-target="#customModal">
+                    <i class="fas fa-cogs me-2"></i>Дополнительные опции
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Интерактивное модальное окно -->
+<div class="modal fade" id="customModal" tabindex="-1" aria-labelledby="customModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <form method="post" action="{% url 'add_data_all' %}">
+            {% csrf_token %}
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="customModalLabel">
+                        <i class="fas fa-sliders-h me-2"></i>Выбор опций
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+                </div>
+                
+                <div class="modal-body p-4">
+                    <!-- Прогресс заполнения формы -->
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <small class="text-muted">Заполнение формы:</small>
+                            <small class="text-muted"><span id="progressPercent">0</span>%</small>
+                        </div>
+                        <div class="progress" style="height: 6px;">
+                            <div class="progress-bar bg-success" id="progressBar" role="progressbar" style="width: 0%"></div>
+                        </div>
+                    </div>
+
+                    <!-- Интерактивные радио кнопки -->
+                    <div class="mb-4">
+                        <h6 class="fw-bold mb-3">
+                            <i class="fas fa-tasks me-2 text-primary"></i>Тип операции:
+                            <span class="badge bg-secondary ms-2" id="operationStatus">Не выбрано</span>
+                        </h6>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <div class="operation-card card h-100 border-2" data-operation="отправка">
+                                    <div class="card-body text-center p-3 position-relative">
+                                        <div class="form-check">
+                                            <input class="form-check-input position-absolute top-0 end-0 m-2" 
+                                                   type="radio" name="single_option" id="отправка" value="отправка">
+                                            <label class="form-check-label w-100 cursor-pointer" for="отправка">
+                                                <i class="fas fa-shipping-fast text-info fs-2 d-block mb-2"></i>
+                                                <strong>Отправка</strong>
+                                                <div class="text-muted small">Отправить коробки</div>
+                                            </label>
+                                        </div>
+                                        <div class="selection-indicator"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="operation-card card h-100 border-2" data-operation="получение">
+                                    <div class="card-body text-center p-3 position-relative">
+                                        <div class="form-check">
+                                            <input class="form-check-input position-absolute top-0 end-0 m-2" 
+                                                   type="radio" name="single_option" id="получение" value="получение">
+                                            <label class="form-check-label w-100 cursor-pointer" for="получение">
+                                                <i class="fas fa-tools text-warning fs-2 d-block mb-2"></i>
+                                                <strong>Получение из ремонта</strong>
+                                                <div class="text-muted small">Вернуть из ремонта</div>
+                                            </label>
+                                        </div>
+                                        <div class="selection-indicator"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="operation-card card h-100 border-2" data-operation="банк">
+                                    <div class="card-body text-center p-3 position-relative">
+                                        <div class="form-check">
+                                            <input class="form-check-input position-absolute top-0 end-0 m-2" 
+                                                   type="radio" name="single_option" id="банк" value="банк">
+                                            <label class="form-check-label w-100 cursor-pointer" for="банк">
+                                                <i class="fas fa-university text-success fs-2 d-block mb-2"></i>
+                                                <strong>Отправка в банк</strong>
+                                                <div class="text-muted small">Передать в банк</div>
+                                            </label>
+                                        </div>
+                                        <div class="selection-indicator"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Интерактивное поле трек номера -->
+                    <div class="mb-4">
+                        <label for="track" class="form-label fw-bold">
+                            <i class="fas fa-barcode me-2 text-primary"></i>Трек номер:
+                            <span class="badge bg-secondary ms-2" id="trackStatus">Не заполнено</span>
+                        </label>
+                        <div class="input-group input-group-lg">
+                            <span class="input-group-text bg-light">
+                                <i class="fas fa-hashtag text-muted"></i>
+                            </span>
+                            <input type="text" class="form-control" name="track" id="track" 
+                                   placeholder="Введите трек номер..." maxlength="20">
+                            <button class="btn btn-outline-secondary" type="button" id="clearTrack">
+                                Очистить
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <div class="form-text">
+                            <span id="trackLength">0</span>/20 символов
+                        </div>
+                    </div>
+
+                    <!-- Интерактивный выбор коробок -->
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="fw-bold mb-0">
+                                <i class="fas fa-boxes me-2 text-primary"></i>Выбор коробок:
+                            </h6>
+                            <div>
+                                <span class="badge bg-primary me-2" id="selectedCount">Выбрано: 0</span>
+                                <button type="button" class="btn btn-sm btn-outline-secondary" id="selectAll">
+                                    <i class="fas fa-check-double me-1"></i>Все
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary ms-1" id="clearAll">
+                                    <i class="fas fa-times me-1"></i>Очистить
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Поиск с живыми результатами -->
+                        <div class="mb-3">
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-search text-primary"></i>
+                                </span>
+                                <input type="text" class="form-control" id="boxSearch" 
+                                       placeholder="Начните вводить номер коробки...">
+                                <button class="btn btn-outline-secondary" type="button" id="clearSearch">
+                                    Очистить
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                            <div class="form-text">
+                                <span id="searchResults">Показано: {{ box|length }} из {{ box|length }}</span>
+                            </div>
+                        </div>
+
+                        <!-- Список коробок с анимацией -->
+                        <div class="border rounded-3 p-3 bg-light position-relative" style="max-height: 250px; overflow-y: auto;">
+                            <div id="boxCheckboxes">
+                                {% for item in box %}
+                                    <div class="form-check mb-2 p-2 rounded box-item" data-box="{{ item }}">
+                                        <input class="form-check-input box-checkbox" type="checkbox" 
+                                               name="box" value="{{ item }}" id="item{{ item }}">
+                                        <label class="form-check-label w-100 cursor-pointer" for="item{{ item }}">
+                                            <i class="fas fa-box me-2 text-muted"></i>
+                                            <span class="box-number">{{ item }}</span>
+                                            <i class="fas fa-check-circle text-success ms-2 selected-icon" style="display: none;"></i>
+                                        </label>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                            <div id="noResults" class="text-center text-muted py-4" style="display: none;">
+                                <i class="fas fa-search fs-1 mb-2 d-block opacity-50"></i>
+                                <div>Коробки не найдены</div>
+                                <small>Попробуйте изменить поисковый запрос</small>
+                            </div>
+                            <div id="loadingSpinner" class="text-center py-3" style="display: none;">
+                                <div class="spinner-border spinner-border-sm text-primary" role="status">
+                                    <span class="visually-hidden">Поиск...</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer bg-light">
+                    <div class="d-flex justify-content-between w-100 align-items-center">
+                        <div class="text-muted small">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Заполните все поля для отправки
+                        </div>
+                        <div>
+                            <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">
+                                <i class="fas fa-times me-1"></i>Отмена
+                            </button>
+                            <button type="submit" name="test_button" class="btn btn-primary" id="submitBtn" disabled>
+                                <i class="fas fa-paper-plane me-1"></i>
+                                <span id="submitText">Отправить</span>
+                                <span class="spinner-border spinner-border-sm ms-2" id="submitSpinner" style="display: none;"></span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
         </form>
     </div>
-    <div>
-        <div style="width: 450px;">
-            <input type="file" class="form-control h-100" name="excel" id="excelFile" required>
-        </div>
+</div>
 
-        <div style="width: 250px;">
-            <button type="submit" class="btn btn-success w-100 h-100">Загрузить</button>
-        </div>
-    </div>
-    {% if error %}
-       <h1>{{ error }}</h1>
-    {% endif %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Элементы
+    const operationCards = document.querySelectorAll('.operation-card');
+    const operationRadios = document.querySelectorAll('input[name="single_option"]');
+    const trackInput = document.getElementById('track');
+    const boxCheckboxes = document.querySelectorAll('.box-checkbox');
+    const searchInput = document.getElementById('boxSearch');
+    const submitBtn = document.getElementById('submitBtn');
+    const progressBar = document.getElementById('progressBar');
+    const progressPercent = document.getElementById('progressPercent');
+    
+    // Статусы
+    const operationStatus = document.getElementById('operationStatus');
+    const trackStatus = document.getElementById('trackStatus');
+    const selectedCount = document.getElementById('selectedCount');
+    const searchResults = document.getElementById('searchResults');
+    const trackLength = document.getElementById('trackLength');
+    
+    // Интерактивность операций
+    operationCards.forEach(card => {
+        card.addEventListener('click', function() {
+            const radio = this.querySelector('input[type="radio"]');
+            radio.checked = true;
+            updateOperationSelection();
+            updateProgress();
+        });
+        
+        card.addEventListener('mouseenter', function() {
+            if (!this.querySelector('input').checked) {
+                this.style.transform = 'translateY(-5px)';
+                this.style.boxShadow = '0 8px 25px rgba(0,0,0,0.15)';
+            }
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            if (!this.querySelector('input').checked) {
+                this.style.transform = '';
+                this.style.boxShadow = '';
+            }
+        });
+    });
+    
+    // Обновление выбора операции
+    function updateOperationSelection() {
+        operationCards.forEach(card => {
+            const radio = card.querySelector('input[type="radio"]');
+            const indicator = card.querySelector('.selection-indicator');
+            
+            if (radio.checked) {
+                card.classList.add('border-primary', 'bg-primary', 'bg-opacity-10');
+                card.style.transform = 'translateY(-5px)';
+                card.style.boxShadow = '0 8px 25px rgba(13, 110, 253, 0.25)';
+                operationStatus.textContent = card.dataset.operation;
+                operationStatus.className = 'badge bg-success ms-2';
+            } else {
+                card.classList.remove('border-primary', 'bg-primary', 'bg-opacity-10');
+                card.style.transform = '';
+                card.style.boxShadow = '';
+            }
+        });
+    }
+    
+    // Трек номер интерактивность
+    trackInput.addEventListener('input', function() {
+        const length = this.value.length;
+        trackLength.textContent = length;
+        
+        if (length > 0) {
+            trackStatus.textContent = 'Заполнено';
+            trackStatus.className = 'badge bg-success ms-2';
+        } else {
+            trackStatus.textContent = 'Не заполнено';
+            trackStatus.className = 'badge bg-secondary ms-2';
+        }
+        updateProgress();
+    });
+    
+    // Очистка трек номера
+    document.getElementById('clearTrack').addEventListener('click', function() {
+        trackInput.value = '';
+        trackInput.dispatchEvent(new Event('input'));
+        trackInput.focus();
+    });
+    
+    // Поиск коробок с задержкой
+    let searchTimeout;
+    searchInput.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase();
+        
+        // Показать спиннер
+        document.getElementById('loadingSpinner').style.display = 'block';
+        
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            filterBoxes(searchTerm);
+            document.getElementById('loadingSpinner').style.display = 'none';
+        }, 300);
+    });
+    
+    // Фильтрация коробок
+    function filterBoxes(searchTerm) {
+        const boxItems = document.querySelectorAll('.box-item');
+        let visibleCount = 0;
+        
+        boxItems.forEach(item => {
+            const boxNumber = item.dataset.box.toLowerCase();
+            const isVisible = boxNumber.includes(searchTerm);
+            
+            if (isVisible) {
+                item.style.display = 'block';
+                item.style.animation = 'fadeIn 0.3s ease';
+                visibleCount++;
+            } else {
+                item.style.display = 'none';
+            }
+        });
+        
+        // Обновить результаты поиска
+        const totalCount = boxItems.length;
+        searchResults.textContent = `Показано: ${visibleCount} из ${totalCount}`;
+        
+        // Показать/скрыть "не найдено"
+        const noResults = document.getElementById('noResults');
+        if (visibleCount === 0 && searchTerm.length > 0) {
+            noResults.style.display = 'block';
+        } else {
+            noResults.style.display = 'none';
+        }
+    }
+    
+    // Выбор коробок
+    boxCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            const item = this.closest('.box-item');
+            const icon = item.querySelector('.selected-icon');
+            
+            if (this.checked) {
+                item.classList.add('bg-success', 'bg-opacity-10', 'border-success');
+                icon.style.display = 'inline';
+                item.style.animation = 'pulse 0.5s ease';
+            } else {
+                item.classList.remove('bg-success', 'bg-opacity-10', 'border-success');
+                icon.style.display = 'none';
+            }
+            
+            updateSelectedCount();
+            updateProgress();
+        });
+    });
+    
+    // Обновление счетчика выбранных
+    function updateSelectedCount() {
+        const selected = document.querySelectorAll('.box-checkbox:checked').length;
+        selectedCount.textContent = `Выбрано: ${selected}`;
+        
+        if (selected > 0) {
+            selectedCount.className = 'badge bg-success me-2';
+        } else {
+            selectedCount.className = 'badge bg-primary me-2';
+        }
+    }
+    
+    // Выбрать все / Очистить все
+    document.getElementById('selectAll').addEventListener('click', function() {
+        const visibleCheckboxes = document.querySelectorAll('.box-item:not([style*="display: none"]) .box-checkbox');
+        visibleCheckboxes.forEach(cb => {
+            cb.checked = true;
+            cb.dispatchEvent(new Event('change'));
+        });
+    });
+    
+    document.getElementById('clearAll').addEventListener('click', function() {
+        boxCheckboxes.forEach(cb => {
+            cb.checked = false;
+            cb.dispatchEvent(new Event('change'));
+        });
+    });
+    
+    // Очистка поиска
+    document.getElementById('clearSearch').addEventListener('click', function() {
+        searchInput.value = '';
+        filterBoxes('');
+        searchInput.focus();
+    });
+    
+    // Обновление прогресса
+    function updateProgress() {
+        let progress = 0;
+        
+        // Проверка операции (33%)
+        if (document.querySelector('input[name="single_option"]:checked')) {
+            progress += 33;
+        }
+        
+        // Проверка трек номера (33%)
+        if (trackInput.value.trim().length > 0) {
+            progress += 33;
+        }
+        
+        // Проверка выбранных коробок (34%)
+        if (document.querySelectorAll('.box-checkbox:checked').length > 0) {
+            progress += 34;
+        }
+        
+        progressBar.style.width = progress + '%';
+        progressPercent.textContent = progress;
+        
+        // Активация кнопки отправки
+        submitBtn.disabled = progress < 100;
+        
+        if (progress === 100) {
+            progressBar.classList.remove('bg-success');
+            progressBar.classList.add('bg-success');
+        }
+    }
+    
+    // Анимация отправки
+    document.querySelector('form').addEventListener('submit', function(e) {
+        const submitSpinner = document.getElementById('submitSpinner');
+        const submitText = document.getElementById('submitText');
+        
+        submitBtn.disabled = true;
+        submitSpinner.style.display = 'inline-block';
+        submitText.textContent = 'Отправка...';
+    });
+    
+    // Обратная связь для файла
+    const fileInput = document.getElementById('excelFile');
+    fileInput.addEventListener('change', function() {
+        const fileName = this.files[0]?.name;
+        if (fileName) {
+            // Удалить предыдущее сообщение
+            const existingMsg = this.parentNode.querySelector('.file-feedback');
+            if (existingMsg) existingMsg.remove();
+            
+            // Добавить новое сообщение
+            const feedback = document.createElement('div');
+            feedback.className = 'file-feedback alert alert-success mt-2 py-2';
+            feedback.innerHTML = `<i class="fas fa-check-circle me-2"></i>Файл выбран: <strong>${fileName}</strong>`;
+            this.parentNode.appendChild(feedback);
+        }
+    });
+    
+    // Инициализация
+    updateProgress();
+    updateSelectedCount();
+});
+</script>
+
+<style>
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+.cursor-pointer {
+    cursor: pointer;
+}
+
+.operation-card {
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.box-item {
+    transition: all 0.3s ease;
+    border: 1px solid transparent;
+}
+
+.box-item:hover {
+    background-color: rgba(13, 110, 253, 0.05) !important;
+    border-color: rgba(13, 110, 253, 0.2) !important;
+}
+
+.selection-indicator {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: linear-gradient(45deg, #28a745, #20c997);
+    opacity: 0;
+    transform: scale(0);
+    transition: all 0.3s ease;
+}
+
+.operation-card input:checked ~ label .selection-indicator {
+    opacity: 1;
+    transform: scale(1);
+}
+
+/* Кастомный скроллбар */
+.border.rounded-3::-webkit-scrollbar {
+    width: 8px;
+}
+
+.border.rounded-3::-webkit-scrollbar-track {
+    background: #f8f9fa;
+    border-radius: 4px;
+}
+
+.border.rounded-3::-webkit-scrollbar-thumb {
+    background: linear-gradient(45deg, #007bff, #0056b3);
+    border-radius: 4px;
+}
+
+.border.rounded-3::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(45deg, #0056b3, #004085);
+}
+</style>
 {% endblock content %}

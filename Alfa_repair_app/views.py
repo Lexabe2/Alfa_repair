@@ -7,10 +7,11 @@ from .fynk import search_cell_start, search_cell_end, app_data, terminal, model_
 from Alfa_repair_app.models import Batch, SerialNumber
 from django.template.loader import render_to_string
 from django.http import HttpResponse
-from openpyxl import Workbook
 import openpyxl
 from django.db.models.functions import Cast
 from django.db.models import IntegerField, Max
+from io import BytesIO
+
 
 def login_views(request):
     return render(request, 'login.html')
@@ -186,47 +187,49 @@ def distribution(request):
 
 @login_required(login_url='login')
 def add_data_all(request):
+    context = {}
+    box_values = []
+    boxes = SerialNumber.objects.exclude(box__isnull=True).exclude(box='').values_list('box', flat=True)
+    for box in boxes:
+        box_values.append(box)
+    context['box'] = box_values
     if request.method == 'POST':
-        result = search_box(request.FILES['excel'])
+        # Обработка Excel-файла
+        if 'submit_excel' in request.POST and 'excel' in request.FILES:
+            result = search_box(request.FILES['excel'])
 
-        if result['status'] == 'error':
-            # Создаём Excel-файл с не найденными серийниками
-            wb = openpyxl.Workbook()
-            ws = wb.active
-            ws.title = "Not Found"
-            ws.append(['Серийный номер (не найден в БД)'])
+            if result['status'] == 'error':
+                # Создаем Excel с не найденными серийниками
+                wb = openpyxl.Workbook()
+                ws = wb.active
+                ws.title = "Not Found"
+                ws.append(['Серийный номер (не найден в БД)'])
+                for sn in result['not_found']:
+                    ws.append([sn])
 
-            for sn in result['not_found']:
-                ws.append([sn])
+                buffer = BytesIO()
+                wb.save(buffer)
+                buffer.seek(0)
 
-            response = HttpResponse(
-                content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-            )
-            response['Content-Disposition'] = 'attachment; filename="not_found_serials.xlsx"'
+                response = HttpResponse(
+                    buffer,
+                    content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                )
+                response['Content-Disposition'] = 'attachment; filename="not_found_serials.xlsx"'
+                return response
 
-            wb.save(response)
-            return response
-    return render(request, 'add_data_all.html')
+            elif result['status'] == 'success':
+                context['success'] = True
 
-
-def export_serials_to_excel(request):
-    # Создаём Excel-файл
-    wb = Workbook()
-    ws = wb.active
-    ws.title = "Serial Numbers"
-
-    # Заголовки
-    ws.append(['Серийный номер', 'Номер коробки'])
-
-    # Данные из модели
-    for sn in SerialNumber.objects.all():
-        ws.append([sn.serial, sn.box])
-
-    # Готовим HTTP-ответ
-    response = HttpResponse(
-        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    )
-    response['Content-Disposition'] = 'attachment; filename=serial_numbers.xlsx'
-
-    wb.save(response)
-    return response
+        # Обработка кнопки "sds"
+        elif 'test_button' in request.POST:
+            selected_option = request.POST.get('single_option')
+            track = request.POST.get('track')
+            box = request.POST.getlist('box')
+            if selected_option == 'отправка':
+                SerialNumber.objects.filter(box__in=box).update(track_repair=track, status='В пути в ремонт')
+            elif selected_option == 'получение':
+                SerialNumber.objects.filter(box__in=box).update(track_good=track, status='В пути в Москву')
+            elif selected_option == 'банк':
+                SerialNumber.objects.filter(box__in=box).update(track_bank=track, status='В пути в банк')
+    return render(request, 'add_data_all.html', context)

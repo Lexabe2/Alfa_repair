@@ -34,6 +34,9 @@ class SerialNumber(models.Model):
     brand = models.CharField(max_length=20, verbose_name='Производитель', blank=True, null=True)
     status = models.CharField(max_length=100, blank=True, null=True, verbose_name="Статус")
     box = models.CharField(max_length=5, blank=True, null=True, verbose_name='Номер коробки')
+    track_repair = models.CharField(max_length=30, blank=True, null=True, verbose_name='Трек в ремонт')
+    track_good = models.CharField(max_length=30, blank=True, null=True, verbose_name='Трек из ремонта')
+    track_bank = models.CharField(max_length=30, blank=True, null=True, verbose_name='Трек в банк')
     location = models.CharField(max_length=255, blank=True, null=True, verbose_name="Местонахождение")
 
     class Meta:

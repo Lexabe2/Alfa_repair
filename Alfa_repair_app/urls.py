@@ -1,6 +1,6 @@
 from django.urls import path
 from .views import index, add_bank_req, login_aut, login_views, out, acceptance, acceptance_terminal, distribution, \
-    add_data_all, export_serials_to_excel
+    add_data_all
 
 urlpatterns = [
     path('login/', login_views, name='login'),
@@ -12,5 +12,4 @@ urlpatterns = [
     path('acceptance_terminal/', acceptance_terminal, name='acceptance_terminal'),
     path('distribution/', distribution, name='distribution'),
     path('add_data_all/', add_data_all, name='add_data_all'),
-    path('export-serials-xlsx/', export_serials_to_excel, name='export_serials_excel'),
 ]
