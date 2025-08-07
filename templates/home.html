@@ -3,14 +3,6 @@
 
 {% block content %}
     <style>
-        body {
-            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f9fafb;
-            color: #222;
-            margin: 0;
-            padding: 0 20px 40px 20px;
-        }
-
         h2 {
             text-align: center;
             margin: 40px 0 20px;
@@ -20,19 +12,21 @@
 
         #brandStatusChart {
             max-width: 900px;
+            width: 100%;
             height: 550px;
             margin: 0 auto 40px;
             background: #fff;
             border-radius: 10px;
-            box-shadow: 0 4px 16px rgb(0 0 0 / 0.1);
-            padding: 20px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+            box-sizing: border-box;
+            overflow-x: auto; /* если что, горизонтальная прокрутка */
         }
     </style>
 
     <h2>График по брендам и статусам</h2>
     <div id="brandStatusChart"></div>
 
-    <!-- Подключаем Plotly, если в base.html нет -->
+    <!-- Подключи Plotly здесь, если его нет в base.html -->
     <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
 
     <script>
@@ -45,10 +39,7 @@
                 y: ds.data,
                 name: ds.label,
                 type: 'bar',
-                marker: {
-                    // Можно добавить прозрачность цвета или тени
-                    opacity: 0.85
-                }
+                marker: { opacity: 0.85 }
             }));
 
             const layout = {
@@ -56,7 +47,8 @@
                 xaxis: {
                     title: 'Бренд',
                     tickangle: -45,
-                    tickfont: {size: 12}
+                    tickfont: { size: 12 },
+                    automargin: true
                 },
                 yaxis: {
                     title: 'Количество',
@@ -66,16 +58,16 @@
                 },
                 legend: {
                     orientation: 'h',
-                    y: -0.2,
-                    font: {size: 13},
+                    y: -0.3,
+                    font: { size: 13 }
                 },
-                margin: {t: 20, b: 120},
+                margin: { t: 20, b: 140, l: 50, r: 30 },
                 plot_bgcolor: '#fff',
                 paper_bgcolor: '#fff',
                 hovermode: 'closest'
             };
 
-            Plotly.newPlot('brandStatusChart', traces, layout, {responsive: true});
+            Plotly.newPlot('brandStatusChart', traces, layout, { responsive: true });
         });
     </script>
 {% endblock content %}
