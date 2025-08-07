@@ -10,6 +10,7 @@ SECRET_KEY = config('SECRET_KEY')
 DEBUG = True
 
 ## dsdf
+DATA_UPLOAD_MAX_NUMBER_FIELDS = 10000  # или больше, если нужно
 
 ALLOWED_HOSTS = [
     '5.129.204.218',
