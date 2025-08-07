@@ -189,11 +189,8 @@ def distribution(request):
 @login_required(login_url='login')
 def add_data_all(request):
     context = {}
-    box_values = []
-    boxes = SerialNumber.objects.exclude(box__isnull=True).exclude(box='').values_list('box', flat=True)
-    for box in boxes:
-        box_values.append(box)
-    context['box'] = box_values
+    boxes = SerialNumber.objects.exclude(box__isnull=True).exclude(box='').values_list('box', flat=True).distinct()
+    context['box'] = list(boxes)
     if request.method == 'POST':
         # Обработка Excel-файла
         if 'submit_excel' in request.POST and 'excel' in request.FILES:
