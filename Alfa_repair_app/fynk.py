@@ -229,7 +229,7 @@ def search_box(excel):
         data_excel[col1] = int(col2)
 
     # Проверяем сначала, все ли терминалы существуют
-    not_found = [serial for serial in data_excel if not SerialNumber.objects.filter(serial=serial).exists()]
+    not_found = [str(serial) for serial in data_excel if not SerialNumber.objects.filter(serial=serial).exists()]
 
     if not_found:
         # Если хотя бы одного нет — ничего не обновляем
