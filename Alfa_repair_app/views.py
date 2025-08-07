@@ -36,8 +36,6 @@ def out(request):
 @login_required(login_url='login')
 def index(request):
     data = data_sc()
-    for i in range(1, 4):
-        SerialNumber.objects.filter(box=i).update(party=i)
     return render(request, 'home.html', {'chart_data_json': data})
 
 
