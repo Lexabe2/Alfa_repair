@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from .fynk import search_cell_start, search_cell_end, app_data, terminal, model_search, excel_load_terminal_add, \
     search_distribution, search_box, data_sc
-from Alfa_repair_app.models import Batch, SerialNumber
+from Alfa_repair_app.models import Application, SerialNumber
 from django.template.loader import render_to_string
 from django.http import HttpResponse
 import openpyxl
@@ -58,13 +58,13 @@ def add_bank_req(request):
         range_sn = f'D{sn_cell_start + 1}:D{sn_cell_end}'
         data_excel = app_data(range_model, range_sn, request.FILES['excel'])
         if data_excel:
-            last_batch = Batch.objects.order_by('-number').first()
+            last_batch = Application.objects.order_by('-number').first()
             if last_batch is None:
                 last_number = 1
             else:
                 last_number = last_batch.number + 1
 
-            batch, created = Batch.objects.get_or_create(
+            batch, created = Application.objects.get_or_create(
                 number=last_number,
                 defaults={"city": city},
             )
@@ -82,7 +82,7 @@ def add_bank_req(request):
 @login_required(login_url='login')
 def acceptance(request):
     if request.method == 'GET':
-        req = Batch.objects.filter(status='acceptance')
+        req = Application.objects.filter(status='acceptance')
         req_data = [(i.number, i.city) for i in req]
         return render(request, 'acceptance.html', {'req_data': req_data})
     if request.method == 'POST':
@@ -99,8 +99,8 @@ def acceptance_terminal(request):
 
     try:
         part_number, city = number_req.split(',')
-        part = Batch.objects.get(number=part_number, city=city)
-    except (ValueError, Batch.DoesNotExist):
+        part = Application.objects.get(number=part_number, city=city)
+    except (ValueError, Application.DoesNotExist):
         return JsonResponse({"success": False, "message": "Некорректные данные о партии."})
 
     if request.method == "POST":

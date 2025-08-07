@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Batch, SerialNumber
+from .models import Application, SerialNumber
 
 
 # 👇 Inline класс для отображения SerialNumber прямо в админке партии
@@ -11,8 +11,8 @@ class SerialNumberInline(admin.TabularInline):  # или admin.StackedInline д�
 
 
 # 👇 Админка для модели партии
-@admin.register(Batch)
-class BatchAdmin(admin.ModelAdmin):
+@admin.register(Application)
+class ApplicationAdmin(admin.ModelAdmin):
     list_display = ("number", "city", "created_at")  # поля в списке
     search_fields = ("number", "city")  # поиск
     list_filter = ("city", "created_at")  # фильтры сбоку

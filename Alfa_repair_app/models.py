@@ -1,7 +1,7 @@
 from django.db import models
 
 
-class Batch(models.Model):
+class Application(models.Model):
     class StatusChoices(models.TextChoices):
         acceptance = 'acceptance', 'Ожидает принятия'
         distribution = 'distribution', 'Ожидает распределения'
@@ -27,7 +27,7 @@ class Batch(models.Model):
 
 
 class SerialNumber(models.Model):
-    batch = models.ForeignKey(Batch, on_delete=models.CASCADE, related_name='serial_numbers')
+    batch = models.ForeignKey(Application, on_delete=models.CASCADE, related_name='serial_numbers')
     serial = models.CharField(max_length=100, verbose_name="Серийный номер")
     model_bank = models.CharField(max_length=255, verbose_name="Модель банка")
     model = models.CharField(max_length=100, verbose_name='Модель', blank=True, null=True)

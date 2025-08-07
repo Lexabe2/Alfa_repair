@@ -1,5 +1,5 @@
 from openpyxl import load_workbook, Workbook
-from Alfa_repair_app.models import Batch, SerialNumber
+from Alfa_repair_app.models import Application, SerialNumber
 from django.db.models import Count
 from collections import Counter
 from collections import defaultdict
@@ -51,7 +51,7 @@ def search_batch_terminal(batch):
 
 
 def terminal(req):
-    batch = Batch.objects.get(number=req)
+    batch = Application.objects.get(number=req)
     serial_count = batch.serial_numbers.count()
     accepted = SerialNumber.objects.filter(batch=batch).exclude(status="Ожидает принятия")
     not_accepted = SerialNumber.objects.filter(batch=batch, status='Ожидает принятия')
@@ -218,7 +218,7 @@ def excel_load_terminal_add(file_name, req, city):  # Получение дан�
     wb = load_workbook(file_name)
     sheet = wb.active
 
-    batch = Batch.objects.get(number=req, city=city)
+    batch = Application.objects.get(number=req, city=city)
     sn_db = search_batch_terminal(batch)
 
     data_excel = []
