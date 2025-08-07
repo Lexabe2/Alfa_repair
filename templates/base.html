@@ -3,38 +3,43 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <link rel="stylesheet" href="{% static "css/main.css" %}" />
-    <link rel="stylesheet" href="{% static "css/table.css" %}" />
+    <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
+    <link rel="stylesheet" href="{% static "css/main.css" %}"/>
+    <link rel="stylesheet" href="{% static "css/table.css" %}"/>
     <link rel="stylesheet" href="{% static 'css/distribution.css' %}">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <title> {% block title %}Default title{% endblock title %} </title>
 </head>
 <body>
-    <header class="header">
-        {% block toast %} {% endblock toast %}
-        <div class="container">
-            <p class="logo">МойСайт</p>
-            
-            <nav>
-                <ul class="nav-menu" id="nav-menu">
-                    <li><a href="/home/">Главная</a></li>
-                    <li><a href="/add_bank_req/">Данные банка</a></li>
-                    <li><a href="/acceptance/">Приемка</a></li>
-                    <li><a href="/distribution/">Распределение</a></li>
-                    <li><a href="/add_data_all/">Добавление</a></li>
-                </ul>
-            </nav>
-            <a href="{% url 'out' %}">Выйти</a>
+<header class="header">
+    {% block toast %} {% endblock toast %}
+    <div class="container">
+        <p class="logo">МойСайт</p>
+
+        <nav>
+            <ul class="nav-menu" id="nav-menu">
+                <li><a href="/home/">Главная</a></li>
+                <li><a href="/add_bank_req/">Данные банка</a></li>
+                <li><a href="/acceptance/">Приемка</a></li>
+                <li><a href="/distribution/">Распределение</a></li>
+                <li><a href="/add_data_all/">Добавление</a></li>
+            </ul>
+        </nav>
+        <a href="{% url 'out' %}">Выйти</a>
+    </div>
+</header>
+<main class="content">{% block content %}{% endblock content %}</main>
+<footer class="footer">
+    <div class="footer-container">
+        <div class="footer-bottom">
+            <p>&copy; 2024 МойСайт. Все права защищены.</p>
         </div>
-    </header>
-    <main class="content">{% block content%}{% endblock content %}</main>
-    <footer class="footer">
-        <div class="footer-container">
-            <div class="footer-bottom">
-                <p>&copy; 2024 МойСайт. Все права защищены.</p>
-            </div>
-        </div>
-    </footer>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+        crossorigin="anonymous"></script>
 </body>
 </html>

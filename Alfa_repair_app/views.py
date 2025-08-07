@@ -9,8 +9,10 @@ from django.template.loader import render_to_string
 from django.http import HttpResponse
 import openpyxl
 from django.db.models.functions import Cast
-from django.db.models import IntegerField, Max
+from django.db.models import IntegerField, Max, Count
 from io import BytesIO
+from collections import defaultdict
+import json
 
 
 def login_views(request):
@@ -33,9 +35,47 @@ def out(request):
     return redirect('login')
 
 
+
 @login_required(login_url='login')
 def index(request):
-    return render(request, 'home.html')
+    data = (
+        SerialNumber.objects
+        .values('brand', 'status')
+        .annotate(count=Count('id'))
+        .order_by('brand', 'status')
+    )
+
+    # Формируем данные в структуру: brand -> status -> count
+    table = defaultdict(lambda: defaultdict(int))
+    statuses_set = set()
+
+    for entry in data:
+        brand = entry['brand'] or 'Неизвестно'
+        status = entry['status'] or 'Не указан'
+        count = entry['count']
+        table[brand][status] = count
+        statuses_set.add(status)
+
+    statuses = sorted(statuses_set)
+    brands = list(table.keys())
+
+    # Подготовка данных для графика
+    chart_data = {
+        'brands': brands,
+        'statuses': statuses,
+        'datasets': []
+    }
+
+    for status in statuses:
+        dataset = {
+            'label': status,
+            'data': [table[brand].get(status, 0) for brand in brands]
+        }
+        chart_data['datasets'].append(dataset)
+
+    return render(request, 'home.html', {
+        'chart_data_json': json.dumps(chart_data),
+    })
 
 
 @login_required(login_url='login')

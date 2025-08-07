@@ -1,6 +1,81 @@
 {% extends "base.html" %}
 {% block title %}Index{% endblock title %}
-<div>{% block content%}
-    <h1>Добро пожаловать на наш сайт!</h1>
-    <p>Это пример простой и красивой шапки сайта, созданной с помощью HTML и CSS. Шапка адаптивная и будет хорошо выглядеть на всех устройствах.</p>
-{% endblock content %}</div>
+
+{% block content %}
+    <style>
+        body {
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f9fafb;
+            color: #222;
+            margin: 0;
+            padding: 0 20px 40px 20px;
+        }
+
+        h2 {
+            text-align: center;
+            margin: 40px 0 20px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        #brandStatusChart {
+            max-width: 900px;
+            height: 550px;
+            margin: 0 auto 40px;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 16px rgb(0 0 0 / 0.1);
+            padding: 20px;
+        }
+    </style>
+
+    <h2>График по брендам и статусам</h2>
+    <div id="brandStatusChart"></div>
+
+    <!-- Подключаем Plotly, если в base.html нет -->
+    <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const chartData = JSON.parse('{{ chart_data_json|safe }}');
+            const brands = chartData.brands;
+
+            const traces = chartData.datasets.map(ds => ({
+                x: brands,
+                y: ds.data,
+                name: ds.label,
+                type: 'bar',
+                marker: {
+                    // Можно добавить прозрачность цвета или тени
+                    opacity: 0.85
+                }
+            }));
+
+            const layout = {
+                barmode: 'stack',
+                xaxis: {
+                    title: 'Бренд',
+                    tickangle: -45,
+                    tickfont: {size: 12}
+                },
+                yaxis: {
+                    title: 'Количество',
+                    zeroline: true,
+                    zerolinewidth: 2,
+                    zerolinecolor: '#ccc'
+                },
+                legend: {
+                    orientation: 'h',
+                    y: -0.2,
+                    font: {size: 13},
+                },
+                margin: {t: 20, b: 120},
+                plot_bgcolor: '#fff',
+                paper_bgcolor: '#fff',
+                hovermode: 'closest'
+            };
+
+            Plotly.newPlot('brandStatusChart', traces, layout, {responsive: true});
+        });
+    </script>
+{% endblock content %}
