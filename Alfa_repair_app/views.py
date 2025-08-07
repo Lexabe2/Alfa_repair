@@ -58,7 +58,7 @@ def add_bank_req(request):
         range_sn = f'D{sn_cell_start + 1}:D{sn_cell_end}'
         data_excel = app_data(range_model, range_sn, request.FILES['excel'])
         if data_excel:
-            last_number = Batch.objects.order_by('-created_at').values_list('number', flat=True).first()
+            last_number = Batch.objects.order_by('-number').first()
             if last_number is None:
                 last_number = 1
             else:
