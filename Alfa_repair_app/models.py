@@ -38,6 +38,7 @@ class SerialNumber(models.Model):
     track_good = models.CharField(max_length=30, blank=True, null=True, verbose_name='Трек из ремонта')
     track_bank = models.CharField(max_length=30, blank=True, null=True, verbose_name='Трек в банк')
     location = models.CharField(max_length=255, blank=True, null=True, verbose_name="Местонахождение")
+    party = models.IntegerField(null=True, blank=True, verbose_name='Номер партии')
 
     class Meta:
         verbose_name = "Терминалы"
