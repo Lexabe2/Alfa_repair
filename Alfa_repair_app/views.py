@@ -9,7 +9,7 @@ from django.template.loader import render_to_string
 from django.http import HttpResponse
 import openpyxl
 from django.db.models.functions import Cast
-from django.db.models import IntegerField, Max, Count
+from django.db.models import IntegerField, Max
 from io import BytesIO
 
 
@@ -36,6 +36,8 @@ def out(request):
 @login_required(login_url='login')
 def index(request):
     data = data_sc()
+    for i in range(1, 4):
+        SerialNumber.objects.filter(box=i).update(party=i)
     return render(request, 'home.html', {'chart_data_json': data})
 
 
@@ -172,16 +174,20 @@ def acceptance_terminal(request):
 @login_required(login_url='login')
 def distribution(request):
     if request.method == 'GET':
+        max_party = SerialNumber.objects.aggregate(Max('party'))['party__max']
         cities = ['Тюмень', 'Инпас']
         serials, all_boxes = search_distribution('Принят')
-        return render(request, 'distribution.html', {'serials': serials, 'cities': cities, 'all_boxes': all_boxes})
+        return render(request, 'distribution.html',
+                      {'serials': serials, 'cities': cities, 'all_boxes': all_boxes, 'max_party': max_party + 1})
     elif request.method == 'POST':
         boxes = request.POST.getlist('boxes')
         if boxes:
             city = request.POST.get('city')
+            party = request.POST.get('party')
             SerialNumber.objects.filter(box__in=request.POST.getlist('boxes')).update(
                 status='Ремонт',
-                location=city
+                location=city,
+                party=party,
             )
         return redirect('distribution')
 
