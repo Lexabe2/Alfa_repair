@@ -2,6 +2,46 @@ from openpyxl import load_workbook, Workbook
 from Alfa_repair_app.models import Batch, SerialNumber
 from django.db.models import Count
 from collections import Counter
+from collections import defaultdict
+import json
+
+
+def data_sc():
+    data = (
+        SerialNumber.objects
+        .values('brand', 'status')
+        .annotate(count=Count('id'))
+        .order_by('brand', 'status')
+    )
+
+    # Формируем данные в структуру: brand -> status -> count
+    table = defaultdict(lambda: defaultdict(int))
+    statuses_set = set()
+
+    for entry in data:
+        brand = entry['brand'] or 'Неизвестно'
+        status = entry['status'] or 'Не указан'
+        count = entry['count']
+        table[brand][status] = count
+        statuses_set.add(status)
+
+    statuses = sorted(statuses_set)
+    brands = list(table.keys())
+
+    # Подготовка данных для графика
+    chart_data = {
+        'brands': brands,
+        'statuses': statuses,
+        'datasets': []
+    }
+
+    for status in statuses:
+        dataset = {
+            'label': status,
+            'data': [table[brand].get(status, 0) for brand in brands]
+        }
+        chart_data['datasets'].append(dataset)
+    return json.dumps(chart_data)
 
 
 def search_batch_terminal(batch):

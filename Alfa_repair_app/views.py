@@ -3,7 +3,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from .fynk import search_cell_start, search_cell_end, app_data, terminal, model_search, excel_load_terminal_add, \
-    search_distribution, search_box
+    search_distribution, search_box, data_sc
 from Alfa_repair_app.models import Batch, SerialNumber
 from django.template.loader import render_to_string
 from django.http import HttpResponse
@@ -11,8 +11,6 @@ import openpyxl
 from django.db.models.functions import Cast
 from django.db.models import IntegerField, Max, Count
 from io import BytesIO
-from collections import defaultdict
-import json
 
 
 def login_views(request):
@@ -35,50 +33,12 @@ def out(request):
     return redirect('login')
 
 
-
 @login_required(login_url='login')
 def index(request):
-    data = (
-        SerialNumber.objects
-        .values('brand', 'status')
-        .annotate(count=Count('id'))
-        .order_by('brand', 'status')
-    )
-
-    # Формируем данные в структуру: brand -> status -> count
-    table = defaultdict(lambda: defaultdict(int))
-    statuses_set = set()
-
-    for entry in data:
-        brand = entry['brand'] or 'Неизвестно'
-        status = entry['status'] or 'Не указан'
-        count = entry['count']
-        table[brand][status] = count
-        statuses_set.add(status)
-
-    statuses = sorted(statuses_set)
-    brands = list(table.keys())
-
-    # Подготовка данных для графика
-    chart_data = {
-        'brands': brands,
-        'statuses': statuses,
-        'datasets': []
-    }
-
-    for status in statuses:
-        dataset = {
-            'label': status,
-            'data': [table[brand].get(status, 0) for brand in brands]
-        }
-        chart_data['datasets'].append(dataset)
-
-    return render(request, 'home.html', {
-        'chart_data_json': json.dumps(chart_data),
-    })
+    data = data_sc()
+    return render(request, 'home.html', {'chart_data_json': data})
 
 
-@login_required(login_url='login')
 def add_bank_req(request):
     if request.method == 'POST' and request.FILES['excel']:
         city = request.POST.get('city', '').strip()
@@ -271,4 +231,3 @@ def add_data_all(request):
             elif selected_option == 'банк':
                 SerialNumber.objects.filter(box__in=box).update(track_bank=track, status='В пути в банк')
     return render(request, 'add_data_all.html', context)
-
