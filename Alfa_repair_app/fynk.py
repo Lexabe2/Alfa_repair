@@ -43,15 +43,6 @@ def get_chart_data(group_field):
 
     return chart_data
 
-def charts_view(request):
-    brand_data = get_chart_data('brand')
-    model_data = get_chart_data('model')
-
-    return render(request, "charts.html", {
-        "brand_chart_json": json.dumps(brand_data, ensure_ascii=False),
-        "model_chart_json": json.dumps(model_data, ensure_ascii=False),
-    })
-
 
 def search_batch_terminal(batch):
     sn = SerialNumber.objects.filter(batch=batch)
