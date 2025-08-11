@@ -3,7 +3,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from .fynk import search_cell_start, search_cell_end, app_data, terminal, model_search, excel_load_terminal_add, \
-    search_distribution, search_box, data_sc
+    search_distribution, search_box, get_chart_data
 from Alfa_repair_app.models import Application, SerialNumber
 from django.template.loader import render_to_string
 from django.http import HttpResponse
@@ -11,6 +11,7 @@ import openpyxl
 from django.db.models.functions import Cast
 from django.db.models import IntegerField, Max
 from io import BytesIO
+import json
 
 
 def login_views(request):
@@ -35,8 +36,13 @@ def out(request):
 
 @login_required(login_url='login')
 def index(request):
-    data = data_sc()
-    return render(request, 'home.html', {'chart_data_json': data})
+    brand_data = get_chart_data('brand')
+    model_data = get_chart_data('model')
+
+    return render(request, "home.html", {
+        "brand_chart_json": json.dumps(brand_data, ensure_ascii=False),
+        "model_chart_json": json.dumps(model_data, ensure_ascii=False),
+    })
 
 
 def add_bank_req(request):

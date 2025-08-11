@@ -6,31 +6,30 @@ from collections import defaultdict
 import json
 
 
-def data_sc():
+def get_chart_data(group_field):
+    """Генерация данных для графика по указанному полю (brand или model)"""
     data = (
         SerialNumber.objects
-        .values('brand', 'status')
+        .values(group_field, 'status')
         .annotate(count=Count('id'))
-        .order_by('brand', 'status')
+        .order_by(group_field, 'status')
     )
 
-    # Формируем данные в структуру: brand -> status -> count
     table = defaultdict(lambda: defaultdict(int))
     statuses_set = set()
 
     for entry in data:
-        brand = entry['brand'] or 'Неизвестно'
+        group_value = entry[group_field] or ('Неизвестно' if group_field == 'brand' else 'Не указана модель')
         status = entry['status'] or 'Не указан'
         count = entry['count']
-        table[brand][status] = count
+        table[group_value][status] = count
         statuses_set.add(status)
 
     statuses = sorted(statuses_set)
-    brands = list(table.keys())
+    groups = list(table.keys())
 
-    # Подготовка данных для графика
     chart_data = {
-        'brands': brands,
+        'labels': groups,
         'statuses': statuses,
         'datasets': []
     }
@@ -38,10 +37,20 @@ def data_sc():
     for status in statuses:
         dataset = {
             'label': status,
-            'data': [table[brand].get(status, 0) for brand in brands]
+            'data': [table[g].get(status, 0) for g in groups]
         }
         chart_data['datasets'].append(dataset)
-    return json.dumps(chart_data)
+
+    return chart_data
+
+def charts_view(request):
+    brand_data = get_chart_data('brand')
+    model_data = get_chart_data('model')
+
+    return render(request, "charts.html", {
+        "brand_chart_json": json.dumps(brand_data, ensure_ascii=False),
+        "model_chart_json": json.dumps(model_data, ensure_ascii=False),
+    })
 
 
 def search_batch_terminal(batch):
