@@ -36,6 +36,7 @@ def out(request):
 
 @login_required(login_url='login')
 def index(request):
+    SerialNumber.objects.filter(model__in=["MF960", "MF960L"]).update(brand="Unitodi")
     brand_data = get_chart_data('brand')
     model_data = get_chart_data('model')
 
