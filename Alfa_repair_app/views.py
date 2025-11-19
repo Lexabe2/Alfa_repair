@@ -12,7 +12,7 @@ from django.db.models.functions import Cast
 from django.db.models import IntegerField, Max
 from io import BytesIO
 import json
-
+from openpyxl import Workbook
 
 def login_views(request):
     return render(request, 'login.html')
@@ -241,3 +241,44 @@ def add_data_all(request):
             elif selected_option == 'банк':
                 SerialNumber.objects.filter(box__in=box).update(track_bank=track, status='В пути в банк')
     return render(request, 'add_data_all.html', context)
+
+
+
+def upload(request):
+    # Если нажали кнопку — вызвать экспорт
+    if request.method == "POST" and "export" in request.POST:
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "Serial Numbers"
+
+        # Заголовки
+        ws.append([
+            "Серийный номер", "Модель", "Производитель", "Статус",
+            "Коробка", "Трек в ремонт", "Tрек из ремонта", "Трек в банк", "Локация", "Партия"
+        ])
+
+        # Строки
+        for s in SerialNumber.objects.all():
+            ws.append([
+                s.serial,
+                s.model,
+                s.brand,
+                s.status,
+                s.box,
+                s.track_repair,
+                s.track_good,
+                s.track_bank,
+                s.location,
+                s.party,
+            ])
+
+        # Отдаём файл
+        response = HttpResponse(
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        response['Content-Disposition'] = 'attachment; filename="serial_numbers.xlsx"'
+        wb.save(response)
+        return response
+
+    # Если GET — просто рендерим страницу
+    return render(request, 'upload.html')
