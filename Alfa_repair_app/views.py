@@ -38,7 +38,7 @@ def out(request):
 def index(request):
     brand_data = get_chart_data('brand')
     model_data = get_chart_data('model')
-    SerialNumber.objects.filter(model='K9').update(brand='Centerm')
+    SerialNumber.objects.filter(model='ПБФ').update(model='ПБФ Free Касса')
     return render(request, "home.html", {
         "brand_chart_json": json.dumps(brand_data, ensure_ascii=False),
         "model_chart_json": json.dumps(model_data, ensure_ascii=False),
