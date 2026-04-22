@@ -1,11 +1,252 @@
 {% extends "base.html" %}
-{% block title %}Приемка{% endblock title %}
+{% block title %}Приёмка{% endblock title %}
 
 {% block content %}
-<form method="post">
-    {% csrf_token %}
-    <button type="submit" name="export" class="btn btn-primary">
-        Выгрузка
-    </button>
-</form>
+<div class="container mt-5">
+    <div class="row g-4">
+        <!-- Блок 1: Выгрузка (акцентный) -->
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-lg h-100">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="bg-primary bg-opacity-10 rounded-circle p-2 me-3">
+                            <i class="bi bi-download text-primary fs-4"></i>
+                        </div>
+                        <h3 class="card-title m-0">Выгрузка данных</h3>
+                    </div>
+
+                    <p class="text-muted mb-4 fw-light">
+                        Экспорт всех серийных номеров в Excel для анализа и отчётности
+                    </p>
+
+                    <form method="post" class="needs-validation">
+                        {% csrf_token %}
+                        <button type="submit" name="export"
+                                class="btn btn-primary btn-lg w-100 py-3"
+                                style="transition: all 0.3s ease;">
+                            <span class="fw-medium">Выгрузить в Excel</span>
+                            <i class="bi bi-arrow-right ms-2"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Блок 2: Обновление из Excel (инструктивный) -->
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-lg h-100">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="bg-success bg-opacity-10 rounded-circle p-2 me-3">
+                            <i class="bi bi-upload text-success fs-4"></i>
+                        </div>
+                        <h3 class="card-title m-0">Изменение статуса из Excel</h3>
+                    </div>
+
+                    <p class="text-muted fw-light mb-4">
+                        Массовое обновление статусов и меток возврата по серийным номерам
+                    </p>
+
+                    <!-- Инструкция -->
+                    <div class="alert alert-info alert-dismissible fade show mb-4" role="alert">
+                        <i class="bi bi-info-circle-fill me-2"></i>
+                        <strong>Формат файла (.xlsx):</strong>
+                        <ul class="mb-0 mt-2">
+                            <li><strong>Столбец A</strong> — Серийный номер <i>(обязательно)</i></li>
+                            <li><strong>Столбец B</strong> — Новый статус <i>(если нужно изменить)</i></li>
+                            <li><strong>Столбец C</strong> — «Да», «1», «Yes» для «Возврат без ремонта»
+                                <i>(опционально)</i></li>
+                        </ul>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+
+                    <form method="post" enctype="multipart/form-data" class="dropzone" id="excelUpload">
+                        {% csrf_token %}
+
+                        <!-- Зона загрузки -->
+                        <div class="upload-area mb-4 p-4 border border-dashed rounded-3 text-center"
+                             ondragover="event.preventDefault(); this.classList.add('drag-over')"
+                             ondragleave="this.classList.remove('drag-over')"
+                             onclick="document.getElementById('excel_file').click()">
+                            <i class="bi bi-file-earmark-excel text-success fs-1 mb-2"></i>
+                            <h6 class="mb-1">Перетащите файл сюда</h6>
+                            <p class="text-muted mb-0 small">или кликните для выбора</p>
+                            <input type="file" name="excel_file" id="excel_file" accept=".xlsx"
+                                   class="form-control" style="display: none;" required>
+                        </div>
+
+                        <!-- Индикатор прогресса (скрыт по умолчанию) -->
+                        <div id="uploadProgress" class="progress mb-3 d-none">
+                            <div class="progress-bar" role="progressbar" style="width: 0%"></div>
+                        </div>
+
+                        <!-- Сообщения -->
+                        {% if messages %}
+                            <div class="mb-4">
+                                {% for message in messages %}
+                                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show"
+                                         role="alert">
+                                        {{ message }}
+                                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+
+                        <!-- Кнопка действия -->
+                        <button type="submit" name="update_status"
+                                class="btn btn-success btn-lg w-100 py-3"
+                                id="uploadBtn">
+                            <span id="btnText">Загрузить и обновить</span>
+                            <div id="spinner" class="spinner-border spinner-border-sm d-none" role="status"></div>
+                        </button>
+                    </form>
+
+                    <!-- Примечания -->
+                    <small class="text-muted mt-3 d-block">
+                        Максимальный размер файла: 10 МБ (рекомендуется до 5 000 строк)
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Стили для улучшений -->
+<style>
+    /* 1. Карточки — тени, скругления, плавные переходы */
+    .card {
+        border: none;
+        border-radius: 12px;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+    }
+
+    /* 2. Иконки-аватары — цветовые маркеры */
+    .bg-primary-avatar {
+        background-color: rgba(13, 110, 253, 0.1);
+    }
+
+    .bg-success-avatar {
+        background-color: rgba(25, 135, 84, 0.1);
+    }
+
+    /* 3. Кнопки — крупные, с анимацией */
+    .btn-lg {
+        padding: 14px 24px;
+        font-weight: 500;
+        border-radius: 8px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+    }
+
+    .btn:active {
+        transform: translateY(0);
+    }
+
+    /* 4. Зона загрузки файла — drag-and-drop */
+    .upload-area {
+        border: 2px dashed #dee2e6;
+        border-radius: 8px;
+        padding: 24px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        color: #6c757d;
+    }
+
+    .upload-area:hover {
+        border-color: #198754;
+        background-color: rgba(25, 135, 84, 0.05);
+        color: #212529;
+    }
+
+    .upload-area.drag-over {
+        border-color: #0d6efd;
+        background-color: rgba(13, 110, 253, 0.1);
+        color: #0d6efd;
+    }
+
+    .upload-area i {
+        font-size: 2.5rem;
+        margin-bottom: 8px;
+    }
+
+    /* 5. Прогресс-бар — видимая обратная связь */
+    .progress {
+        height: 6px;
+        border-radius: 3px;
+        overflow: hidden;
+    }
+
+    .progress-bar {
+        transition: width 0.3s ease;
+        background: linear-gradient(90deg, #198754, #20c997);
+    }
+
+    /* 6. Алерты — информативные сообщения */
+    .alert-info {
+        border-left: 4px solid #0dcaf0;
+    }
+
+    .alert-success {
+        border-left: 4px solid #198754;
+    }
+
+    .alert-danger {
+        border-left: 4px solid #dc3545;
+    }
+
+    /* 7. Типографика — читаемость */
+    .card-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+    }
+
+    .text-muted {
+        color: #6c757d !important;
+    }
+
+    .fw-light {
+        font-weight: 300;
+    }
+
+    .fw-medium {
+        font-weight: 500;
+    }
+
+    /* 8. Отступы и выравнивание */
+    .mb-4 {
+        margin-bottom: 1.5rem !important;
+    }
+
+    .p-4 {
+        padding: 1.5rem !important;
+    }
+
+    .mt-5 {
+        margin-top: 3rem !important;
+    }
+
+    /* 9. Адаптивность — для мобильных */
+    @media (max-width: 992px) {
+        .col-lg-6 {
+            flex: 0 0 100%;
+            max-width: 100%;
+        }
+
+        .btn-lg {
+            padding: 12px 20px;
+            font-size: 0.95rem;
+        }
+    }
+</style>
 {% endblock content %}
