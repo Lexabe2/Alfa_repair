@@ -258,7 +258,7 @@ def upload(request):
             ws.append([
                 "Серийный номер", "Модель", "Производитель", "Статус",
                 "Коробка", "Трек в ремонт", "Трек из ремонта", "Трек в банк",
-                "Локация", "Партия", "Возврат без ремонта", 'Заявка'
+                "Локация", "Партия", 'Заявка'
             ])
 
             # Строки
@@ -274,7 +274,6 @@ def upload(request):
                     s.track_bank,
                     s.location,
                     s.party,
-                    "Да" if s.return_without_repair else "Нет",
                     s.batch.number if s.batch else "",
                 ])
 
