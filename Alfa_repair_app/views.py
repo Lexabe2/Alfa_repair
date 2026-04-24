@@ -274,7 +274,7 @@ def upload(request):
                     s.track_bank,
                     s.location,
                     s.party,
-                    s.batch.number,
+                    s.batch.number if s.batch else ""
                 ])
 
             response = HttpResponse(
