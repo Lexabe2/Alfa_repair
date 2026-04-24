@@ -274,7 +274,6 @@ def upload(request):
                     s.track_bank,
                     s.location,
                     s.party,
-                    "Да" if s.return_without_repair else "Нет",
                     s.batch
                 ])
 
