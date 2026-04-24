@@ -262,7 +262,7 @@ def upload(request):
             ])
 
             # Строки
-            for s in SerialNumber.objects.all():
+            for s in SerialNumber.objects.select_related("batch").all():
                 ws.append([
                     s.serial,
                     s.model,
@@ -274,7 +274,8 @@ def upload(request):
                     s.track_bank,
                     s.location,
                     s.party,
-                    s.batch.number if s.batch else ""
+                    "Да" if s.return_without_repair else "Нет",
+                    s.batch.number if s.batch else "",
                 ])
 
             response = HttpResponse(
