@@ -46,3 +46,4 @@ class SerialNumber(models.Model):
 
     def __str__(self):
         return self.serial
+# 1

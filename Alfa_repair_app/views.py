@@ -284,7 +284,7 @@ def upload(request):
             wb.save(response)
             return response
 
-        # 2. Обновление статусов и return_without_repair из Excel
+        # 2. Обновление статусов и return_without_repair из Excelии
         elif 'update_status' in request.POST:
             excel_file = request.FILES.get('excel_file')
             if not excel_file:
