@@ -39,10 +39,6 @@ class SerialNumber(models.Model):
     track_bank = models.CharField(max_length=30, blank=True, null=True, verbose_name='Трек в банк')
     location = models.CharField(max_length=255, blank=True, null=True, verbose_name="Местонахождение")
     party = models.IntegerField(null=True, blank=True, verbose_name='Номер партии')
-    return_without_repair = models.BooleanField(
-        default=False,
-        verbose_name='Возврат без ремонта',
-    )
 
     class Meta:
         verbose_name = "Терминалы"
