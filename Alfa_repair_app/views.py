@@ -13,6 +13,8 @@ from django.db.models import IntegerField, Max
 from io import BytesIO
 import json
 from openpyxl import Workbook
+from django.contrib import messages
+import pandas as pd
 
 def login_views(request):
     return render(request, 'login.html')
@@ -245,40 +247,112 @@ def add_data_all(request):
 
 
 def upload(request):
-    # Если нажали кнопку — вызвать экспорт
-    if request.method == "POST" and "export" in request.POST:
-        wb = Workbook()
-        ws = wb.active
-        ws.title = "Serial Numbers"
+    if request.method == "POST":
+        # 1. Экспорт в Excel
+        if "export" in request.POST:
+            wb = Workbook()
+            ws = wb.active
+            ws.title = "Serial Numbers"
 
-        # Заголовки
-        ws.append([
-            "Серийный номер", "Модель", "Производитель", "Статус",
-            "Коробка", "Трек в ремонт", "Tрек из ремонта", "Трек в банк", "Локация", "Партия"
-        ])
-
-        # Строки
-        for s in SerialNumber.objects.all():
+            # Заголовки
             ws.append([
-                s.serial,
-                s.model,
-                s.brand,
-                s.status,
-                s.box,
-                s.track_repair,
-                s.track_good,
-                s.track_bank,
-                s.location,
-                s.party,
+                "Серийный номер", "Модель", "Производитель", "Статус",
+                "Коробка", "Трек в ремонт", "Трек из ремонта", "Трек в банк",
+                "Локация", "Партия", "Возврат без ремонта", 'Заявка'
             ])
 
-        # Отдаём файл
-        response = HttpResponse(
-            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-        )
-        response['Content-Disposition'] = 'attachment; filename="serial_numbers.xlsx"'
-        wb.save(response)
-        return response
+            # Строки
+            for s in SerialNumber.objects.all():
+                ws.append([
+                    s.serial,
+                    s.model,
+                    s.brand,
+                    s.status,
+                    s.box,
+                    s.track_repair,
+                    s.track_good,
+                    s.track_bank,
+                    s.location,
+                    s.party,
+                    "Да" if s.return_without_repair else "Нет",
+                    s.batch
+                ])
 
-    # Если GET — просто рендерим страницу
+            response = HttpResponse(
+                content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            )
+            response['Content-Disposition'] = 'attachment; filename="serial_numbers.xlsx"'
+            wb.save(response)
+            return response
+
+        # 2. Обновление статусов и return_without_repair из Excel
+        elif 'update_status' in request.POST:
+            excel_file = request.FILES.get('excel_file')
+            if not excel_file:
+                messages.error(request, "Файл не выбран!")
+                return redirect('upload')
+
+            try:
+                # Читаем Excel (без заголовков)
+                df = pd.read_excel(excel_file, header=None, dtype=str)
+
+                # Ожидаем минимум 2 столбца: A — serial, B — status, C — return_without_repair (опционально)
+                if df.shape[1] < 2:
+                    messages.error(request, "В файле должно быть минимум 2 столбца: A — серийный номер, B — статус")
+                    return redirect('upload')
+
+                updated_count = 0
+                not_found = []
+                errors = []
+
+                for index, row in df.iterrows():
+                    serial = str(row[0]).strip() if pd.notna(row[0]) else None
+                    print(serial)
+                    if not serial:
+                        continue
+
+                    new_status = str(row[1]).strip() if df.shape[1] > 1 and pd.notna(row[1]) else None
+
+                    # Столбец C: "Да", "1", "Yes" → True, иначе не трогаем
+                    return_str = str(row[2]).strip() if df.shape[1] > 2 and pd.notna(row[2]) else ""
+                    set_return = return_str.lower() in ['да', 'yes', '1', 'true']
+
+                    try:
+                        obj = SerialNumber.objects.get(serial=serial)
+                        changed = False
+
+                        if new_status and new_status != obj.status:
+                            obj.status = new_status
+                            changed = True
+
+                        if set_return and not obj.return_without_repair:
+                            obj.return_without_repair = True
+                            changed = True
+
+                        if changed:
+                            obj.save()
+                            updated_count += 1
+
+                    except SerialNumber.DoesNotExist:
+                        not_found.append(serial)
+                    except Exception as e:
+                        errors.append(f"Строка {index+1}: {str(e)}")
+
+                if updated_count:
+                    messages.success(request, f"Обновлено {updated_count} записей")
+                else:
+                    messages.info(request, "Изменений не было")
+
+                if not_found:
+                    messages.warning(request, f"Не найдены серийные номера: {', '.join(not_found[:5])}...")
+
+                if errors:
+                    messages.error(request, f"Ошибки: {', '.join(errors[:3])}...")
+
+            except Exception as e:
+                messages.error(request, f"Ошибка обработки файла: {str(e)}")
+
+            return redirect('upload')
+
+    # GET-запрос — показываем страницу
     return render(request, 'upload.html')
